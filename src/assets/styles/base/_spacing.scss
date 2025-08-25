@@ -1,0 +1,77 @@
+// Spacing 단위 설정
+$spacing-scale: (
+  0: 0,
+  1: 0.25rem,
+  // 4px
+  2: 0.5rem,
+  // 8px
+  3: 0.75rem,
+  // 12px
+  4: 1rem,
+  // 16px
+  5: 1.25rem,
+  // 20px
+  6: 1.5rem,
+  // 24px
+  8: 2rem,
+  // 32px
+  10: 2.5rem,
+  // 40px
+  12: 3rem,
+  // 48px
+  16: 4rem // 64px,,,,,,,,,,,,
+);
+
+// Margin
+@each $key, $value in $spacing-scale {
+  .m-#{$key} {
+    margin: $value !important;
+  }
+  .mt-#{$key} {
+    margin-top: $value !important;
+  }
+  .mr-#{$key} {
+    margin-right: $value !important;
+  }
+  .mb-#{$key} {
+    margin-bottom: $value !important;
+  }
+  .ml-#{$key} {
+    margin-left: $value !important;
+  }
+  .mx-#{$key} {
+    margin-left: $value !important;
+    margin-right: $value !important;
+  }
+  .my-#{$key} {
+    margin-top: $value !important;
+    margin-bottom: $value !important;
+  }
+}
+
+// Padding
+@each $key, $value in $spacing-scale {
+  .p-#{$key} {
+    padding: $value !important;
+  }
+  .pt-#{$key} {
+    padding-top: $value !important;
+  }
+  .pr-#{$key} {
+    padding-right: $value !important;
+  }
+  .pb-#{$key} {
+    padding-bottom: $value !important;
+  }
+  .pl-#{$key} {
+    padding-left: $value !important;
+  }
+  .px-#{$key} {
+    padding-left: $value !important;
+    padding-right: $value !important;
+  }
+  .py-#{$key} {
+    padding-top: $value !important;
+    padding-bottom: $value !important;
+  }
+}

@@ -1,0 +1,9 @@
+// 공통 정의 재노출(정의만 있는 파일)
+@forward "base/variables";
+@forward "mixins/media";
+@forward "mixins/utils";
+
+// CSS를 실제로 출력하는 베이스(원하는 순서대로)
+@use "base/reset";
+@use "base/typography";
+@use "base/spacing";

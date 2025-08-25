@@ -1,0 +1,15 @@
+// 개발 환경 배너 Style
+
+.dev-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  color: #ff000066;
+  font-size: 1.5rem;
+  font-weight: bold;
+  z-index: 9999;
+  pointer-events: none;
+  user-select: none;
+  box-sizing: border-box;
+}

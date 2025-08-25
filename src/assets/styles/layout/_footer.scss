@@ -1,0 +1,54 @@
+@use "@/assets/styles/index" as *;
+
+// local tokens
+$logo-gap: 2.5rem;
+$footer-bg: #ddd;
+
+// placeholders
+%flex-center {
+  display: flex;
+  align-items: center;
+}
+
+%container-width {
+  @include pc {
+    width: 1400px;
+  }
+  @include tab {
+    width: 1024px;
+  }
+  @include mob {
+    width: 1024px;
+    min-width: 1024px;
+  }
+}
+
+.main-footer {
+  width: 100vw;
+  min-width: 1024px;
+  box-sizing: border-box;
+  padding-block: 1.5rem;
+  background-color: #90cbcd;
+
+  @extend %flex-center;
+  justify-content: center;
+
+  .footer-inner {
+    height: auto;
+    @extend %flex-center;
+    justify-content: space-between;
+    @extend %container-width;
+
+    > .left {
+      @extend %flex-center;
+      justify-content: flex-start;
+      gap: 2rem;
+
+      img {
+        height: 2rem;
+        margin-right: $logo-gap;
+        flex-shrink: 0;
+      }
+    }
+  }
+}

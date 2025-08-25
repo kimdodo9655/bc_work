@@ -1,0 +1,14 @@
+@use "@/assets/styles/index" as *; // reset/typography/spacing 출력 + 변수/믹스인 제공
+
+// layout
+@use "@/assets/styles/layout/header";
+@use "@/assets/styles/layout/footer";
+
+// themes
+@use "@/assets/styles/themes/auth";
+@use "@/assets/styles/themes/guest";
+
+// pages
+
+// components
+@use "@/assets/styles/components/devBanner";

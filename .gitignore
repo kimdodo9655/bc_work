@@ -1,0 +1,50 @@
+# 로그 파일 (개발 중 생성되는 각종 로그들)
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 의존성 디렉토리 (npm, yarn 등 설치된 패키지들)
+node_modules/
+
+# 빌드 결과물 (생성된 정적 파일들)
+dist/
+dist-ssr/
+build/
+
+# 환경설정 파일 (민감한 정보 포함 가능, 커밋 금지)
+.env
+.env.*.local
+*.local
+
+# 에디터 설정 파일 (개인 개발환경 관련)
+.vscode/
+!.vscode/extensions.json  # 확장 추천 파일은 예외적으로 포함
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+
+# 운영체제 자동 생성 파일
+.DS_Store      # macOS
+Thumbs.db      # Windows
+
+# 테스트 커버리지 리포트
+coverage/
+
+# TypeScript 캐시 파일
+*.tsbuildinfo
+
+# Sublime Text 프로젝트 설정
+*.sublime-project
+*.sublime-workspace
+
+# 개인 환경변수
+.env.devlocal
+.env.devlocal.local
