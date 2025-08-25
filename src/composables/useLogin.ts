@@ -14,24 +14,19 @@ export function useLogin() {
 
     onSuccess: (data) => {
       if (!data) {
-        console.warn("로그인 응답 데이터가 null입니다.");
+        console.warn("로그인 응답 데이터가 null입니다. 이 경우 최초 로그인으로 판단. 이메일 인증 진행");
         return;
       }
 
       const token = data.accessToken;
       const expiry = data.accessTokenExpiry;
 
-      if (!token || !expiry) {
-        console.warn("accessToken 또는 accessTokenExpiry 누락됨.");
-        return;
-      }
-
       // ✅ 저장 및 헤더 설정
       localStorage.setItem("accessToken", token);
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       authStore.setToken(token, expiry);
 
-      console.log("✅ 로그인 성공 - 토큰 설정 완료:", token);
+      console.log("✅ 로그인 성공 - Authorization 토큰 설정 완료");
       router.push("/");
     },
 
