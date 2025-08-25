@@ -1,6 +1,6 @@
 // api/auth.ts
-import api from "@/api/axios";
-import type { LoginReqDto, LoginResDto, LogoutResDto, TokenResDto } from "@/api/types/auth";
+import api from "@/api/client/axios";
+import type { LoginReqDto, LoginResDto, LogoutResDto, TokenResDto } from "@/api/types/index";
 
 export const login = async (payload: LoginReqDto): Promise<LoginResDto> => {
   const res = await api.post<{ data: LoginResDto }>("/user/login", payload);

@@ -1,5 +1,5 @@
-import { setupAuthInterceptor } from "./interceptors/auth.interceptor";
-import { setupLoggerInterceptor } from "./interceptors/logger.interceptor";
+import { setupAuthInterceptor } from "../interceptors/auth.interceptor";
+import { setupLoggerInterceptor } from "../interceptors/logger.interceptor";
 import { isDev } from "@/utils/env";
 
 export function setupAxiosInterceptors() {

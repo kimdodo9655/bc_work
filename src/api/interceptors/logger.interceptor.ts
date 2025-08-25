@@ -1,4 +1,4 @@
-import api from "@/api/axios";
+import api from "@/api/client/axios";
 
 // Axios config 타입 확장
 declare module "axios" {

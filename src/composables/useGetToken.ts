@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/vue-query";
-import { getToken } from "@/api/services/auth";
-import type { TokenResDto } from "@/api/types/auth";
-import api from "@/api/axios";
+import { getToken } from "@/api/services/index";
+import type { TokenResDto } from "@/api/types/index";
+import api from "@/api/client/axios";
 import { useAuthStore } from "@/stores/auth";
 
 export function useGetToken() {

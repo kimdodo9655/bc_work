@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/vue-query";
-import type { LoginReqDto, LoginResDto } from "@/api/types/auth";
-import { login } from "@/api/services/auth";
-import api from "@/api/axios";
+import type { LoginReqDto, LoginResDto } from "@/api/types/index";
+import { login } from "@/api/services/index";
+import api from "@/api/client/axios";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 

@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/vue-query";
-import { logout } from "@/api/services/auth";
-import type { LogoutResDto } from "@/api/types/auth";
+import { logout } from "@/api/services/index";
+import type { LogoutResDto } from "@/api/types/index";
 import { useAuthStore } from "@/stores/auth"; // ✅ Pinia 상태 사용
 
 export function useLogout() {

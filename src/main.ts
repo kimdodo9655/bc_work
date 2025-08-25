@@ -4,7 +4,7 @@ import { VueQueryPlugin, QueryClient } from "@tanstack/vue-query";
 import "@/assets/styles/main.scss";
 import router from "./router";
 import { createPinia } from "pinia";
-import { setupAxiosInterceptors } from "@/api/setupAxios";
+import { setupAxiosInterceptors } from "@/api/client/setupAxios";
 import { useAuthStore } from "./stores/auth";
 
 const app = createApp(App);
