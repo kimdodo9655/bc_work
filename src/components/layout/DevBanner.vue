@@ -5,5 +5,6 @@
 </template>
 
 <script setup lang="ts">
-const devBannerText = import.meta.env.VITE_SHOW_DEV_TEXT || "";
+import { getDevBannerText } from "@/utils/env";
+const devBannerText = getDevBannerText();
 </script>
