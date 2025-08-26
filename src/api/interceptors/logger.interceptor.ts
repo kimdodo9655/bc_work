@@ -1,6 +1,10 @@
+// @/api/interceptors/logger.interceptor.ts
+// Axios 콘솔 로거 (개발 참고용)
+
 import api from "@/api/client/axios";
 
-// Axios config 타입 확장
+// ─────────────────────────────────────────────────────────────
+// Axios 타입 확장
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
     metadata?: {
@@ -10,114 +14,161 @@ declare module "axios" {
   }
 }
 
-const requestTimeMap = new Map<string, number>();
-let requestCounter = 0;
-
-// 로그 레벨 타입
+// ─────────────────────────────────────────────────────────────
+// 설정/유형
 type LogLevel = "debug" | "info" | "warn" | "error";
-
-// 인증 상태 확인 함수 타입
 type AuthChecker = () => boolean | Promise<boolean>;
 
-// 로그 설정
 const logConfig = {
   level: "debug" as LogLevel,
   showHeaders: true,
   showQueryParams: true,
   showResponseSize: true,
-  showAuthStatus: true, // 인증 상태 표시 여부
+  showAuthStatus: true,
   colorize: true,
-  maxDataLength: 1000, // 응답 데이터 최대 길이 (너무 길면 잘라냄)
+  maxDataLength: 1000,
+} as const;
+
+// ─────────────────────────────────────────────────────────────
+// 공통 유틸
+const colors = {
+  blue: "color:#2196F3;font-weight:bold;",
+  green: "color:#4CAF50;font-weight:bold;",
+  red: "color:#F44336;font-weight:bold;",
+  amber: "color:#FF9800;",
+  reset: "color:inherit;",
+} as const;
+
+const statusTexts: Record<number, string> = {
+  200: "OK",
+  201: "Created",
+  204: "No Content",
+  400: "Bad Request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not Found",
+  422: "Unprocessable Entity",
+  500: "Internal Server Error",
+  502: "Bad Gateway",
+  503: "Service Unavailable",
 };
 
-// 토큰 만료 시간 가져오기 함수들
+const nowKR = () => new Date().toLocaleString("ko-KR");
+const toKB = (bytes: number) => (bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`);
+
+const jsonSize = (data: any) => {
+  try {
+    const s = JSON.stringify(data ?? "");
+    return toKB(new Blob([s]).size);
+  } catch {
+    return "0 B";
+  }
+};
+
+const truncate = (data: any, max = 1000) => {
+  try {
+    const s = JSON.stringify(data, null, 2);
+    return s.length <= max ? s : s.slice(0, max) + "\n... (truncated)";
+  } catch {
+    return String(data);
+  }
+};
+
+const parseQS = (url?: string) => {
+  if (!url) return "{}";
+  try {
+    const u = new URL(url, window.location.origin);
+    const obj: Record<string, string> = {};
+    u.searchParams.forEach((v, k) => (obj[k] = v));
+    return Object.keys(obj).length ? JSON.stringify(obj, null, 2) : "{}";
+  } catch {
+    return "{}";
+  }
+};
+
+const perfGrade = (ms: number) => {
+  if (ms < 200) return { grade: "FAST", style: colors.green };
+  if (ms < 500) return { grade: "NORMAL", style: colors.amber };
+  if (ms < 1000) return { grade: "SLOW", style: colors.red };
+  return { grade: "VERY SLOW", style: colors.red };
+};
+
+const maskHeaders = (headers?: any) => {
+  if (!headers) return headers;
+  const safe = { ...headers };
+  const keys = Object.keys(safe);
+  keys.forEach((k) => {
+    if (/authorization/i.test(k)) safe[k] = "***MASKED***";
+  });
+  return safe;
+};
+
+const log = (msg: string, style?: string) => {
+  if (logConfig.colorize && style) console.log(`%c${msg}`, style);
+  else console.log(msg);
+};
+
+const formatRemain = (ms: number) => {
+  if (ms <= 0) return "만료됨";
+  const sec = Math.floor(ms / 1000);
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m > 0 ? `${m}분 ${s}초` : `${s}초`;
+};
+
+// ─────────────────────────────────────────────────────────────
+// 토큰 만료/인증 체크
 const tokenExpiryGetters = {
-  // localStorage에서 만료 시간 확인
-  getFromStorage: (): number | null => {
-    const expiry = localStorage.getItem("accessTokenExpiry") || localStorage.getItem("tokenExpiry") || localStorage.getItem("expiresAt");
-    return expiry ? parseInt(expiry) : null;
+  storage: (): number | null => {
+    const v = localStorage.getItem("accessTokenExpiry") || localStorage.getItem("tokenExpiry") || localStorage.getItem("expiresAt");
+    return v ? parseInt(v) : null;
   },
-
-  // sessionStorage에서 만료 시간 확인
-  getFromSession: (): number | null => {
-    const expiry = sessionStorage.getItem("accessTokenExpiry") || sessionStorage.getItem("tokenExpiry") || sessionStorage.getItem("expiresAt");
-    return expiry ? parseInt(expiry) : null;
+  session: (): number | null => {
+    const v = sessionStorage.getItem("accessTokenExpiry") || sessionStorage.getItem("tokenExpiry") || sessionStorage.getItem("expiresAt");
+    return v ? parseInt(v) : null;
   },
-
-  // JWT 토큰에서 exp 클레임 추출
-  getFromJWT: (): number | null => {
+  jwt: (): number | null => {
     try {
       const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
       if (!token) return null;
-
       const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.exp ? payload.exp * 1000 : null; // JWT exp는 초 단위이므로 밀리초로 변환
+      return payload?.exp ? payload.exp * 1000 : null;
     } catch {
       return null;
     }
   },
-
-  // Pinia store에서 가져오기 (Vue 프로젝트용)
-  getFromPinia: (): number | null => {
+  pinia: (): number | null => {
     try {
-      // Vue에서 Pinia store 접근
-      const authStore = (window as any).authStore || (window as any).useAuthStore?.();
-      return authStore?.accessTokenExpiry || null;
+      const s = (window as any).authStore || (window as any).useAuthStore?.();
+      return s?.accessTokenExpiry ?? null;
     } catch {
       return null;
     }
   },
-
-  // 사용자 정의 함수
-  getCustomExpiry: (): number | null => {
+  custom: (): number | null => {
     try {
-      // 여기에 실제 앱의 토큰 만료 시간 가져오기 로직을 구현하세요
-      return (window as any).getTokenExpiry?.() || null;
+      return (window as any).getTokenExpiry?.() ?? null;
     } catch {
       return null;
     }
   },
 };
 
-// 현재 사용할 만료 시간 getter
-let currentExpiryGetter = (): number | null => {
-  return tokenExpiryGetters.getFromStorage() || tokenExpiryGetters.getFromSession() || tokenExpiryGetters.getFromJWT() || tokenExpiryGetters.getFromPinia();
-};
+let getExpiry: () => number | null = () => tokenExpiryGetters.storage() || tokenExpiryGetters.session() || tokenExpiryGetters.jwt() || tokenExpiryGetters.pinia();
 
-// 인증 상태 확인 함수들
 const authCheckers = {
-  // 방법 1: localStorage의 토큰 확인
-  checkTokenInStorage: (): boolean => {
-    const token = localStorage.getItem("accessToken") || localStorage.getItem("authToken") || localStorage.getItem("token");
-    return !!token && token !== "undefined" && token !== "null";
+  ls: () => {
+    const t = localStorage.getItem("accessToken") || localStorage.getItem("authToken") || localStorage.getItem("token");
+    return !!t && t !== "undefined" && t !== "null";
   },
-
-  // 방법 2: sessionStorage의 토큰 확인
-  checkTokenInSession: (): boolean => {
-    const token = sessionStorage.getItem("accessToken") || sessionStorage.getItem("authToken") || sessionStorage.getItem("token");
-    return !!token && token !== "undefined" && token !== "null";
+  ss: () => {
+    const t = sessionStorage.getItem("accessToken") || sessionStorage.getItem("authToken") || sessionStorage.getItem("token");
+    return !!t && t !== "undefined" && t !== "null";
   },
-
-  // 방법 3: 쿠키의 토큰 확인
-  checkTokenInCookie: (): boolean => {
-    return document.cookie.split(";").some((cookie) => {
-      const [name] = cookie.trim().split("=");
-      return ["accessToken", "authToken", "token", "jwt"].includes(name);
-    });
-  },
-
-  // 방법 4: Authorization 헤더 확인
-  checkAuthHeader: (): boolean => {
-    const defaultHeaders = api.defaults.headers?.common;
-    return !!(defaultHeaders?.Authorization || defaultHeaders?.authorization);
-  },
-
-  // 방법 5: 사용자 정의 함수 (전역 상태 등)
-  checkCustomAuth: (): boolean => {
-    // 여기에 실제 앱의 인증 상태 확인 로직을 구현하세요
-    // 예: Redux store, Zustand, Context API 등
+  cookie: () => document.cookie.split(";").some((c) => ["accessToken", "authToken", "token", "jwt"].includes(c.trim().split("=")[0])),
+  header: () => !!(api.defaults.headers?.common?.Authorization || api.defaults.headers?.common?.authorization),
+  custom: () => {
     try {
-      // 예시: window 객체에 있는 사용자 정보 확인
       return !!(window as any).user || !!(window as any).isAuthenticated;
     } catch {
       return false;
@@ -125,362 +176,149 @@ const authCheckers = {
   },
 };
 
-// 기본 인증 확인 함수 (여러 방법을 조합)
-let currentAuthChecker: AuthChecker = (): boolean => {
-  return authCheckers.checkTokenInStorage() || authCheckers.checkTokenInSession() || authCheckers.checkAuthHeader() || authCheckers.checkCustomAuth();
-};
+let isAuthed: AuthChecker = () => authCheckers.ls() || authCheckers.ss() || authCheckers.header() || authCheckers.custom();
 
-// 색상 스타일 (개발 환경에서만)
-const colors = {
-  request: "color: #2196F3; font-weight: bold;",
-  response: "color: #4CAF50; font-weight: bold;",
-  error: "color: #F44336; font-weight: bold;",
-  info: "color: #FF9800;",
-  authenticated: "color: #4CAF50;",
-  unauthenticated: "color: #F44336;",
-  reset: "color: inherit;",
-};
-
-// 시간 포맷팅 함수
-function formatTimeRemaining(milliseconds: number): string {
-  if (milliseconds <= 0) return "만료됨";
-
-  const totalSeconds = Math.floor(milliseconds / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-
-  if (minutes > 0) {
-    return `${minutes}분 ${seconds}초`;
-  }
-  return `${seconds}초`;
-}
-
-// 인증 상태 아이콘 및 텍스트
-function getAuthStatus(): { icon: string; text: string; color: string } {
+const getAuthStatus = async () => {
   try {
-    const isAuthenticated = currentAuthChecker();
-
-    if (isAuthenticated) {
-      // 토큰 만료 시간 확인
-      const expiryTime = currentExpiryGetter();
-
-      if (expiryTime) {
-        const timeLeft = expiryTime - Date.now();
-        const timeText = formatTimeRemaining(timeLeft);
-
-        // 만료 시간에 따라 색상 변경
-        let color = colors.authenticated;
-        if (timeLeft <= 5 * 60 * 1000) {
-          // 5분 이하
-          color = colors.error;
-        } else if (timeLeft <= 10 * 60 * 1000) {
-          // 10분 이하
-          color = colors.info;
-        }
-
-        return {
-          icon: "🔐",
-          text: `Authenticated (${timeText})`,
-          color,
-        };
-      }
-
-      return {
-        icon: "🔐",
-        text: "Authenticated",
-        color: colors.authenticated,
-      };
-    }
-
-    return {
-      icon: "🔓",
-      text: "Not Authenticated",
-      color: colors.unauthenticated,
-    };
-  } catch (error) {
-    return {
-      icon: "❓",
-      text: "Auth Check Failed",
-      color: colors.error,
-    };
-  }
-}
-
-// 데이터 크기 계산
-function getDataSize(data: any): string {
-  if (!data) return "0 B";
-  const jsonString = JSON.stringify(data);
-  const bytes = new Blob([jsonString]).size;
-
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-// 데이터 자르기 (너무 긴 경우)
-function truncateData(data: any, maxLength: number): string {
-  const jsonString = JSON.stringify(data, null, 2);
-  if (jsonString.length <= maxLength) return jsonString;
-  return jsonString.substring(0, maxLength) + "\n... (truncated)";
-}
-
-// 쿼리 파라미터 파싱
-function parseQueryParams(url: string): string {
-  try {
-    const urlObj = new URL(url, window.location.origin);
-    const params = urlObj.searchParams;
-    if (params.toString()) {
-      const paramObj: Record<string, string> = {};
-      params.forEach((value, key) => {
-        paramObj[key] = value;
-      });
-      return JSON.stringify(paramObj, null, 2);
-    }
-    return "{}";
+    const ok = await Promise.resolve(isAuthed());
+    if (!ok) return { icon: "🔓", label: "Not Authenticated" as const };
+    const exp = getExpiry();
+    if (!exp) return { icon: "🔐", label: "Authenticated" as const };
+    const left = exp - Date.now();
+    const remains = formatRemain(left);
+    return { icon: "🔐", label: `Authenticated (${remains})` as const, left };
   } catch {
-    return "{}";
+    return { icon: "❓", label: "Auth Check Failed" as const };
   }
-}
+};
 
-// 성능 등급 반환
-function getPerformanceGrade(duration: number): { grade: string; color: string } {
-  if (duration < 200) return { grade: "FAST", color: "#4CAF50" };
-  if (duration < 500) return { grade: "NORMAL", color: "#FF9800" };
-  if (duration < 1000) return { grade: "SLOW", color: "#FF5722" };
-  return { grade: "VERY SLOW", color: "#F44336" };
-}
-
-// 로그 출력 함수
-function logWithStyle(message: string, style: string = colors.reset) {
-  if (logConfig.colorize) {
-    console.log(`%c${message}`, style);
-  } else {
-    console.log(message);
-  }
-}
-
-// HTTP 상태 코드 텍스트 반환
-function getStatusText(status: number): string {
-  const statusTexts: Record<number, string> = {
-    200: "OK",
-    201: "Created",
-    204: "No Content",
-    400: "Bad Request",
-    401: "Unauthorized",
-    403: "Forbidden",
-    404: "Not Found",
-    422: "Unprocessable Entity",
-    500: "Internal Server Error",
-    502: "Bad Gateway",
-    503: "Service Unavailable",
-  };
-  return statusTexts[status] || "";
-}
+// ─────────────────────────────────────────────────────────────
+// 퍼블릭 API (런타임 구성)
+let reqSeq = 0;
 
 export function setupLoggerInterceptor() {
   console.log("🔧 API Logger가 활성화되었습니다.");
 
-  // 전역에서 로거 설정 변경할 수 있도록 window 객체에 추가
-  (window as any).configureApiLogger = (config: Partial<typeof logConfig>) => {
-    Object.assign(logConfig, config);
-    console.log("📝 API Logger 설정이 변경되었습니다:", logConfig);
-  };
+  // 런타임 설정/훅 노출
+  Object.assign(window as any, {
+    configureApiLogger: (cfg: Partial<typeof logConfig>) => {
+      Object.assign(logConfig as any, cfg);
+      console.log("📝 API Logger 설정 변경:", logConfig);
+    },
+    setAuthChecker: (fn: AuthChecker) => {
+      isAuthed = fn;
+      console.log("🔑 Auth checker 변경됨");
+    },
+    setExpiryGetter: (fn: () => number | null) => {
+      getExpiry = fn;
+      console.log("⏰ Expiry getter 변경됨");
+    },
+    useAuthChecker: (k: keyof typeof authCheckers) => {
+      if (authCheckers[k]) {
+        isAuthed = authCheckers[k];
+        console.log(`🔑 Auth checker → ${k}`);
+      }
+    },
+    useExpiryGetter: (k: keyof typeof tokenExpiryGetters) => {
+      if (tokenExpiryGetters[k]) {
+        getExpiry = tokenExpiryGetters[k];
+        console.log(`⏰ Expiry getter → ${k}`);
+      }
+    },
+  });
 
-  // 인증 확인 함수 변경
-  (window as any).setAuthChecker = (checker: AuthChecker) => {
-    currentAuthChecker = checker;
-    console.log("🔑 Auth checker가 변경되었습니다.");
-  };
-
-  // 토큰 만료 시간 getter 변경
-  (window as any).setExpiryGetter = (getter: () => number | null) => {
-    currentExpiryGetter = getter;
-    console.log("⏰ Token expiry getter가 변경되었습니다.");
-  };
-
-  // 미리 정의된 인증 확인 방법들 제공
-  (window as any).useAuthChecker = (type: keyof typeof authCheckers) => {
-    if (authCheckers[type]) {
-      currentAuthChecker = authCheckers[type];
-      console.log(`🔑 Auth checker를 ${type}로 변경했습니다.`);
-    }
-  };
-
-  // 미리 정의된 만료 시간 getter 제공
-  (window as any).useExpiryGetter = (type: keyof typeof tokenExpiryGetters) => {
-    if (tokenExpiryGetters[type]) {
-      currentExpiryGetter = tokenExpiryGetters[type];
-      console.log(`⏰ Expiry getter를 ${type}로 변경했습니다.`);
-    }
-  };
-
-  // 요청 로그
+  // 요청 인터셉터
   api.interceptors.request.use((config) => {
+    const reqId = ++reqSeq;
+    const start = Date.now();
+    config.metadata = { requestId: reqId, startTime: start };
+
     const { method, url, data, headers } = config;
-    const now = Date.now();
-    const timestamp = new Date().toLocaleString("ko-KR"); // 한국 시간 형식
-    const reqId = ++requestCounter;
-    const authStatus = logConfig.showAuthStatus ? getAuthStatus() : null;
+    const t = nowKR();
 
-    if (url) {
-      requestTimeMap.set(`${url}-${reqId}`, now);
-    }
+    const qs = logConfig.showQueryParams ? parseQS(url) : "{}";
+    const hdr = logConfig.showHeaders ? maskHeaders(headers) : undefined;
 
-    // 요청 ID를 config에 저장 (응답에서 매칭용)
-    (config as any).metadata = { requestId: reqId, startTime: now };
+    const headerBlock = hdr ? `\n│ Headers  : ${JSON.stringify(hdr, null, 2).replace(/\n/g, "\n│            ")}` : "";
+    const qsBlock = qs !== "{}" ? `\n│ Query    : ${qs.replace(/\n/g, "\n│            ")}` : "";
 
-    let logMessage = `
+    const startLog = async () => {
+      const auth = logConfig.showAuthStatus ? await getAuthStatus() : null;
+
+      const msg = `
 🚀 [API Request #${reqId}]
 ┌─────────────────────────────────────────────────
-│ Time     : ${timestamp}`;
-
-    // 인증 상태 표시
-    if (authStatus) {
-      logMessage += `
-│ Auth     : ${authStatus.icon} ${authStatus.text}`;
-    }
-
-    logMessage += `
+│ Time     : ${t}${auth ? `\n│ Auth     : ${auth.icon} ${auth.label}` : ""}
 │ Method   : ${method?.toUpperCase()}
 │ Endpoint : ${url}
-│ Size     : ${getDataSize(data)}`;
-
-    // 쿼리 파라미터 표시
-    if (logConfig.showQueryParams && url) {
-      const queryParams = parseQueryParams(url);
-      if (queryParams !== "{}") {
-        logMessage += `
-│ Query    : ${queryParams.replace(/\n/g, "\n│           ")}`;
-      }
-    }
-
-    // 헤더 표시 (인증 정보 등 민감한 정보는 마스킹)
-    if (logConfig.showHeaders && headers) {
-      const safeHeaders = { ...headers };
-      if (safeHeaders.Authorization) {
-        safeHeaders.Authorization = "***MASKED***";
-      }
-      logMessage += `
-│ Headers  : ${JSON.stringify(safeHeaders, null, 2).replace(/\n/g, "\n│           ")}`;
-    }
-
-    // 요청 데이터
-    logMessage += `
+│ Size     : ${jsonSize(data)}${qsBlock}${headerBlock}
 │ Data     :
-│ ${data ? truncateData(data, logConfig.maxDataLength).replace(/\n/g, "\n│ ") : "{}"}
+│ ${truncate(data, logConfig.maxDataLength).replace(/\n/g, "\n│ ")}
 └─────────────────────────────────────────────────`;
-
-    logWithStyle(logMessage, colors.request);
+      log(msg, colors.blue);
+    };
+    // 비동기 인증표시 지원
+    startLog();
 
     return config;
   });
 
-  // 응답 로그 (성공)
+  // 응답 인터셉터
   api.interceptors.response.use(
-    (response) => {
+    async (response) => {
       const { config, status, data, headers } = response;
-      const reqId = (config as any).metadata?.requestId || "unknown";
-      const startTime = (config as any).metadata?.startTime || Date.now();
-      const duration = Date.now() - startTime;
-      const timestamp = new Date().toLocaleString("ko-KR");
-      const performanceInfo = getPerformanceGrade(duration);
-      const authStatus = logConfig.showAuthStatus ? getAuthStatus() : null;
+      const { requestId, startTime } = config.metadata ?? {};
+      const t = nowKR();
+      const dur = Date.now() - (startTime ?? Date.now());
+      const p = perfGrade(dur);
+      const auth = logConfig.showAuthStatus ? await getAuthStatus() : null;
 
-      // Map에서 제거
-      if (config.url) {
-        requestTimeMap.delete(`${config.url}-${reqId}`);
-      }
+      const hdr = logConfig.showHeaders
+        ? (() => {
+            const imp: Record<string, any> = {};
+            ["content-type", "cache-control", "etag", "x-ratelimit-remaining", "x-response-time"].forEach((k) => {
+              if ((headers as any)?.[k]) imp[k] = (headers as any)[k];
+            });
+            return Object.keys(imp).length ? `\n│ Headers     : ${JSON.stringify(imp, null, 2).replace(/\n/g, "\n│               ")}` : "";
+          })()
+        : "";
 
-      let logMessage = `
-✅ [API Response #${reqId}] 
+      const msg = `
+✅ [API Response #${requestId ?? "unknown"}]
 ┌─────────────────────────────────────────────────
-│ Time        : ${timestamp}`;
-
-      // 인증 상태 표시
-      if (authStatus) {
-        logMessage += `
-│ Auth        : ${authStatus.icon} ${authStatus.text}`;
-      }
-
-      logMessage += `
+│ Time        : ${t}${auth ? `\n│ Auth        : ${auth.icon} ${auth.label}` : ""}
 │ Endpoint    : ${config.url}
-│ Status      : ${status} ${getStatusText(status)}
-│ Duration    : ${duration}ms (${performanceInfo.grade})
-│ Size        : ${getDataSize(data)}`;
-
-      // 응답 헤더에서 유용한 정보 추출
-      if (logConfig.showHeaders && headers) {
-        const importantHeaders: Record<string, any> = {};
-
-        // 유용한 헤더들만 선별
-        ["content-type", "cache-control", "etag", "x-ratelimit-remaining", "x-response-time"].forEach((key) => {
-          if (headers[key]) importantHeaders[key] = headers[key];
-        });
-
-        if (Object.keys(importantHeaders).length > 0) {
-          logMessage += `
-│ Headers     : ${JSON.stringify(importantHeaders, null, 2).replace(/\n/g, "\n│              ")}`;
-        }
-      }
-
-      logMessage += `
+│ Status      : ${status} ${statusTexts[status] ?? ""}
+│ Duration    : ${dur}ms (${p.grade})
+│ Size        : ${jsonSize(data)}${hdr}
 │ Data        :
-│ ${truncateData(data, logConfig.maxDataLength).replace(/\n/g, "\n│ ")}
+│ ${truncate(data, logConfig.maxDataLength).replace(/\n/g, "\n│ ")}
 └─────────────────────────────────────────────────`;
-
-      // 성능에 따라 색상 변경
-      const logColor = duration > 1000 ? colors.error : colors.response;
-      logWithStyle(logMessage, logColor);
-
+      log(msg, dur > 1000 ? colors.red : colors.green);
       return response;
     },
+    async (error) => {
+      const config = error?.config ?? {};
+      const { requestId, startTime } = (config as any).metadata ?? {};
+      const t = nowKR();
+      const dur = Date.now() - (startTime ?? Date.now());
+      const status = error?.response?.status ?? "Network Error";
+      const data = error?.response?.data ?? { message: error?.message };
+      const auth = logConfig.showAuthStatus ? await getAuthStatus() : null;
 
-    (error) => {
-      const config = error.config || {};
-      const reqId = (config as any).metadata?.requestId || "unknown";
-      const startTime = (config as any).metadata?.startTime || Date.now();
-      const duration = Date.now() - startTime;
-      const timestamp = new Date().toLocaleString("ko-KR");
-      const status = error.response?.status || "Network Error";
-      const errorData = error.response?.data || { message: error.message };
-      const authStatus = logConfig.showAuthStatus ? getAuthStatus() : null;
-
-      // Map에서 제거
-      if (config.url) {
-        requestTimeMap.delete(`${config.url}-${reqId}`);
-      }
-
-      let logMessage = `
-❌ [API Error #${reqId}]
+      const msg = `
+❌ [API Error #${requestId ?? "unknown"}]
 ┌─────────────────────────────────────────────────
-│ Time        : ${timestamp}`;
-
-      // 인증 상태 표시
-      if (authStatus) {
-        logMessage += `
-│ Auth        : ${authStatus.icon} ${authStatus.text}`;
-      }
-
-      logMessage += `
-│ Endpoint    : ${config.url || "unknown"}
-│ Status      : ${status} ${error.response ? getStatusText(status) : ""}
-│ Duration    : ${duration}ms
-│ Error Type  : ${error.name || "Unknown"}
-│ Message     : ${error.message}`;
-
-      // 네트워크 오류인지 서버 오류인지 구분
-      if (error.code) {
-        logMessage += `
-│ Error Code  : ${error.code}`;
-      }
-
-      logMessage += `
+│ Time        : ${t}${auth ? `\n│ Auth        : ${auth.icon} ${auth.label}` : ""}
+│ Endpoint    : ${config.url ?? "unknown"}
+│ Status      : ${status} ${typeof status === "number" ? statusTexts[status] ?? "" : ""}
+│ Duration    : ${dur}ms
+│ Error Type  : ${error?.name ?? "Unknown"}
+│ Message     : ${error?.message ?? ""}
 │ Data        :
-│ ${truncateData(errorData, logConfig.maxDataLength).replace(/\n/g, "\n│ ")}
+│ ${truncate(data, logConfig.maxDataLength).replace(/\n/g, "\n│ ")}
 └─────────────────────────────────────────────────`;
-
-      logWithStyle(logMessage, colors.error);
-
+      log(msg, colors.red);
       return Promise.reject(error);
     }
   );
