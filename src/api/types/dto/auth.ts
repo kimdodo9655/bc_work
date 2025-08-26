@@ -1,4 +1,3 @@
-// ---------------------------------------------- [LoginReqDto.java]
 // 로그인 요청 DTO
 export interface LoginReqDto {
   userId: string;
@@ -6,8 +5,7 @@ export interface LoginReqDto {
   macAddress: string;
 }
 
-// ---------------------------------------------- [LoginResDto.java]
-// 금융기관 정보
+// 금융기관 정보 DTO
 export interface LoginFinancialDto {
   code: string;
   name: string;

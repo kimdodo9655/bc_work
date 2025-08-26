@@ -68,3 +68,140 @@ npm run dev
 # 4. 프로덕션 빌드
 npm run build
 ```
+
+```
+register-front
+├─ README.md
+├─ index.html
+├─ package-lock.json
+├─ package.json
+├─ public
+│  └─ favicon
+│     ├─ android-icon-144x144.png
+│     ├─ android-icon-192x192.png
+│     ├─ android-icon-36x36.png
+│     ├─ android-icon-48x48.png
+│     ├─ android-icon-72x72.png
+│     ├─ android-icon-96x96.png
+│     ├─ apple-icon-114x114.png
+│     ├─ apple-icon-120x120.png
+│     ├─ apple-icon-144x144.png
+│     ├─ apple-icon-152x152.png
+│     ├─ apple-icon-180x180.png
+│     ├─ apple-icon-57x57.png
+│     ├─ apple-icon-60x60.png
+│     ├─ apple-icon-72x72.png
+│     ├─ apple-icon-76x76.png
+│     ├─ apple-icon-precomposed.png
+│     ├─ apple-icon.png
+│     ├─ browserconfig.xml
+│     ├─ favicon-16x16.png
+│     ├─ favicon-32x32.png
+│     ├─ favicon-96x96.png
+│     ├─ favicon.ico
+│     ├─ manifest.json
+│     ├─ ms-icon-144x144.png
+│     ├─ ms-icon-150x150.png
+│     ├─ ms-icon-310x310.png
+│     └─ ms-icon-70x70.png
+├─ src
+│  ├─ App.vue
+│  ├─ api
+│  │  ├─ client
+│  │  │  ├─ axios.ts
+│  │  │  └─ setupAxios.ts
+│  │  ├─ interceptors
+│  │  │  ├─ auth.interceptor.ts
+│  │  │  └─ logger.interceptor.ts
+│  │  ├─ services
+│  │  │  ├─ auth.ts
+│  │  │  ├─ index.ts
+│  │  │  └─ userSecurity.ts
+│  │  └─ types
+│  │     ├─ common.ts
+│  │     └─ dto
+│  │        ├─ auth.ts
+│  │        ├─ index.ts
+│  │        └─ userSecurity.ts
+│  ├─ assets
+│  │  ├─ font
+│  │  │  ├─ NotoSansKR-Light.ttf
+│  │  │  ├─ NotoSansKR-SemiBold.ttf
+│  │  │  └─ OneMobileTitle.ttf
+│  │  ├─ images
+│  │  │  ├─ login_img.svg
+│  │  │  └─ logos
+│  │  │     └─ bankclear.png
+│  │  └─ styles
+│  │     ├─ _index.scss
+│  │     ├─ base
+│  │     │  ├─ _reset.scss
+│  │     │  ├─ _spacing.scss
+│  │     │  ├─ _typography.scss
+│  │     │  └─ _variables.scss
+│  │     ├─ components
+│  │     │  └─ _devBanner.scss
+│  │     ├─ layout
+│  │     │  ├─ _footer.scss
+│  │     │  └─ _header.scss
+│  │     ├─ main.scss
+│  │     ├─ mixins
+│  │     │  ├─ _media.scss
+│  │     │  └─ _utils.scss
+│  │     ├─ pages
+│  │     └─ themes
+│  │        ├─ _auth.scss
+│  │        └─ _guest.scss
+│  ├─ components
+│  │  ├─ TokenCountdown.vue
+│  │  └─ layout
+│  │     ├─ Alert.vue
+│  │     ├─ AuthBackground.vue
+│  │     ├─ Body.vue
+│  │     ├─ DevBanner.vue
+│  │     ├─ Footer.vue
+│  │     ├─ Header.vue
+│  │     └─ ModalBackground.vue
+│  ├─ composables
+│  │  ├─ auth
+│  │  │  ├─ useGetToken.ts
+│  │  │  ├─ useLogin.ts
+│  │  │  └─ useLogout.ts
+│  │  └─ userSecurity
+│  │     ├─ useChangeMyPassword.ts
+│  │     ├─ useChangePassword.ts
+│  │     ├─ useSendAuthEmail.ts
+│  │     ├─ useSendAuthEmailBeforeChgPwd.ts
+│  │     └─ useVerifyEmailAuthKey.ts
+│  ├─ main.ts
+│  ├─ router
+│  │  └─ index.ts
+│  ├─ stores
+│  │  └─ auth.ts
+│  ├─ types
+│  │  └─ env.d.ts
+│  ├─ utils
+│  │  └─ env.ts
+│  ├─ views
+│  │  ├─ ApiTest.vue
+│  │  ├─ auth
+│  │  │  ├─ AuthViews.vue
+│  │  │  ├─ EmailAuth.vue
+│  │  │  ├─ Login.vue
+│  │  │  ├─ PasswordSetup.vue
+│  │  │  └─ SiteBlocked.vue
+│  │  ├─ common
+│  │  │  ├─ PageNotFound.vue
+│  │  │  ├─ PrivacyPolicy.vue
+│  │  │  └─ TermsOfService.vue
+│  │  ├─ main
+│  │  │  └─ Main.vue
+│  │  └─ onboarding
+│  │     └─ SelectBank.vue
+│  └─ vite-env.d.ts
+├─ tsconfig.app.json
+├─ tsconfig.json
+├─ tsconfig.node.json
+└─ vite.config.ts
+
+```
