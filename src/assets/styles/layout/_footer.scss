@@ -1,17 +1,8 @@
 @use "@/assets/styles/index" as *;
 
 /* ============================================
-   FOOTER 전용 PLACEHOLDERS
-   ============================================ */
-%flex-center {
-  display: flex;
-  align-items: center;
-}
-
-/* ============================================
    FOOTER 스타일
    ============================================ */
-// 로컬 변수
 $logo-gap: 2.5rem;
 
 .main-footer {
@@ -21,17 +12,30 @@ $logo-gap: 2.5rem;
   padding-block: 1.5rem;
   background-color: $accent;
 
-  @extend %flex-center;
+  display: flex;
+  align-items: center;
   justify-content: center;
 
   .footer-inner {
     height: auto;
-    @extend %flex-center;
-    @extend %container-width;
+    display: flex;
+    align-items: center;
     justify-content: space-between;
 
+    @include pc {
+      width: 1400px;
+    }
+    @include tab {
+      width: 1024px;
+    }
+    @include mob {
+      width: 100%;
+      min-width: 320px;
+    }
+
     > .left {
-      @extend %flex-center;
+      display: flex;
+      align-items: center;
       justify-content: flex-start;
       gap: 2rem;
 
