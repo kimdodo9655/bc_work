@@ -1,53 +1,21 @@
-@use "@/assets/styles/index" as *; // reset/typography/spacing 출력 + 변수/믹스인 제공
+// ==========================================
+// 실제 CSS 출력 진입점
+// ==========================================
 
-// layout
+// API 레이어 (변수, 믹스인만)
+@use "@/assets/styles/index" as *;
+
+// 기본 스타일 출력
+@use "@/assets/styles/base/reset";
+@use "@/assets/styles/base/typography";
+@use "@/assets/styles/base/utilities";
+
+// 레이아웃 출력
 @use "@/assets/styles/layout/header";
 @use "@/assets/styles/layout/footer";
+@use "@/assets/styles/layout/dev-banner";
 
-// themes
-@use "@/assets/styles/themes/auth";
-@use "@/assets/styles/themes/guest";
-
-// pages
-@use "@/assets/styles/pages/auth/login";
-@use "@/assets/styles/pages/auth/autoLogout";
-
-// components
-@use "@/assets/styles/components/devBanner";
-
-%btn-primary-solid {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 100%;
-  height: 60px;
-  margin: 0;
-  box-sizing: border-box;
-  border-radius: 5px;
-  border: 0;
-
-  background-color: $main;
-  color: $white;
-  font-size: 18px;
-  font-weight: bold;
-  letter-spacing: 1.5px;
-
-  cursor: pointer;
-  text-decoration: none; /* a 기본 밑줄 제거 */
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: $main-dark;
-  }
-}
-
-.link_btn {
-  @extend %btn-primary-solid;
-}
-.login-form__submit {
-  @extend %btn-primary-solid;
-}
-.link_btn {
-  @extend %btn-primary-solid;
-}
+// 페이지 출력
+@use "@/assets/styles/pages/auth";
+@use "@/assets/styles/pages/onboarding.scss";
+@use "@/assets/styles/pages/dashboard.scss";

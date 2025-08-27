@@ -1,5 +1,5 @@
 @use "sass:map";
-@use "@/assets/styles/base/_variables.scss" as *;
+@use "@/assets/styles/index" as *;
 
 // ==========================================
 // Font Face 선언
@@ -46,7 +46,7 @@ $font-sizes: (
   // 20px
   h5: 1rem,
   // 16px
-  h6: 0.875rem // 14px,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+  h6: 0.875rem // 14px,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 );
 
 // Font Weight
@@ -63,6 +63,10 @@ $font-color-base: #222;
 // ==========================================
 // Base Reset 스타일
 // ==========================================
+
+* {
+  font-family: $font-family-body;
+}
 
 body {
   font-family: $font-family-body;
