@@ -1,33 +1,24 @@
+// ==========================================
+// 미디어쿼리
+// ==========================================
 $breakpoint-pc: 1400px;
 $breakpoint-tab: 1024px;
 $breakpoint-mob: 320px;
 
-// PC: 1400px 이상
 @mixin pc {
   @media (min-width: #{$breakpoint-pc}) {
     @content;
   }
 }
 
-// Tablet: 1024px 이상 ~ 1399px 이하
 @mixin tab {
   @media (min-width: #{$breakpoint-tab}) and (max-width: #{$breakpoint-pc - 1}) {
     @content;
   }
 }
 
-// Mobile: 320px 이상 ~ 1023px 이하
 @mixin mob {
   @media (min-width: #{$breakpoint-mob}) and (max-width: #{$breakpoint-tab - 1}) {
     @content;
   }
 }
-
-// .container {
-//   @include pc {
-//   }
-//   @include tab {
-//   }
-//   @include mob {
-//   }
-// }

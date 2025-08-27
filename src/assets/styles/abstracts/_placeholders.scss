@@ -1,0 +1,17 @@
+// ==========================================
+// 전역 공통 PLACEHOLDERS (여러 파일에서 사용)
+// ==========================================
+@use "@/assets/styles/abstracts/mixins" as *;
+
+%container-width {
+  @include pc {
+    width: 1400px;
+  }
+  @include tab {
+    width: 1024px;
+  }
+  @include mob {
+    width: 100%;
+    min-width: 320px;
+  }
+}

@@ -16,6 +16,7 @@
 @use "@/assets/styles/layout/dev-banner";
 
 // 페이지 출력
-@use "@/assets/styles/pages/auth";
-@use "@/assets/styles/pages/onboarding.scss";
-@use "@/assets/styles/pages/dashboard.scss";
+@use "@/assets/styles/pages/auth"; // 로그인 전
+@use "@/assets/styles/pages/onboarding"; // 로그인 후 금융기관 선택
+@use "@/assets/styles/pages/dashboard"; // 로그인 이후
+@use "@/assets/styles/pages/common"; // 공통

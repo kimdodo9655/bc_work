@@ -1,4 +1,6 @@
-// Styles 공통 변수
+// ==========================================
+// 색상 변수
+// ==========================================
 $main: #5f9ea0;
 $main-dark: #4d9294;
 $main-light: #cadfdf;
@@ -17,3 +19,35 @@ $yellow: #ffc422;
 $gray-666: #666666;
 $gray-999: #999999;
 $gray-ddd: #dddddd;
+
+// ==========================================
+// Typography 변수 (typography.scss에서 이동)
+// ==========================================
+$font-family-title: "OneMobileTitle", sans-serif;
+$font-family-body: "NotoSansKR", sans-serif;
+
+// Font Size (rem 단위)
+$font-sizes: (
+  h1: 2.25rem,
+  // 36px
+  h2: 1.875rem,
+  // 30px
+  h3: 1.5rem,
+  // 24px
+  h4: 1.25rem,
+  // 20px
+  h5: 1rem,
+  // 16px
+  h6: 0.875rem // 14px,,
+);
+
+// Font Weight
+$font-weights: (
+  regular: 300,
+  semibold: 600,
+);
+
+// Typography Base
+$font-size-base: 16px;
+$leading: 1.7;
+$font-color-base: #222;
