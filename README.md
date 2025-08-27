@@ -114,8 +114,10 @@ register-front
 │  │  │  ├─ auth.interceptor.ts
 │  │  │  └─ logger.interceptor.ts
 │  │  ├─ services
+│  │  │  ├─ auth
 │  │  │  ├─ auth.ts
 │  │  │  ├─ index.ts
+│  │  │  ├─ userSecurity
 │  │  │  └─ userSecurity.ts
 │  │  └─ types
 │  │     ├─ common.ts
@@ -173,6 +175,7 @@ register-front
 │  │     ├─ useSendAuthEmail.ts
 │  │     ├─ useSendAuthEmailBeforeChgPwd.ts
 │  │     └─ useVerifyEmailAuthKey.ts
+│  ├─ constants
 │  ├─ main.ts
 │  ├─ router
 │  │  └─ index.ts

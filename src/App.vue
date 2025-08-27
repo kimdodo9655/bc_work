@@ -1,5 +1,5 @@
 <template>
-  <ApiTest />
+  <!-- <ApiTest /> -->
   <router-view />
   <Footer />
 

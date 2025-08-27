@@ -1,4 +1,5 @@
 @use "sass:map";
+@use "@/assets/styles/base/_variables.scss" as *;
 
 // ==========================================
 // Font Face 선언
@@ -13,7 +14,7 @@
 
 @font-face {
   font-family: "NotoSansKR";
-  src: url("@/assets/font/NotoSansKR-Light.ttf") format("truetype");
+  src: url("@/assets/font/NotoSansKR-Regular.ttf") format("truetype");
   font-weight: 300;
   font-style: normal;
 }
@@ -45,19 +46,18 @@ $font-sizes: (
   // 20px
   h5: 1rem,
   // 16px
-  h6: 0.875rem // 14px,,,,,,,,,,,,,,,,,
+  h6: 0.875rem // 14px,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 );
 
 // Font Weight
 $font-weights: (
-  light: 300,
-  regular: 400,
+  regular: 300,
   semibold: 600,
 );
 
 // Line Height & Base
 $font-size-base: 16px;
-$line-height-base: normal;
+$leading: 1.7;
 $font-color-base: #222;
 
 // ==========================================
@@ -67,12 +67,12 @@ $font-color-base: #222;
 body {
   font-family: $font-family-body;
   font-size: $font-size-base;
-  font-weight: map.get($font-weights, light);
-  line-height: $line-height-base;
+  font-weight: map.get($font-weights, regular);
+  line-height: $leading;
   color: $font-color-base;
   word-break: keep-all;
   letter-spacing: -0.015em;
-  background-color: #fff;
+  background-color: $white;
   margin: 0;
 }
 
@@ -105,35 +105,35 @@ h6 {
 p {
   margin: 0;
   font-family: $font-family-body;
-  font-weight: map.get($font-weights, light);
-  line-height: $line-height-base;
+  font-weight: map.get($font-weights, regular);
+  line-height: $leading;
+
   color: $font-color-base;
 }
 
 p.subtext {
-  color: #999;
+  color: #666;
 }
 
 // ==========================================
 // a 태그: 일반 텍스트처럼 보이게
 // ==========================================
 
+/* 안전한 a reset */
 a {
-  all: unset; // 모든 브라우저 기본 스타일 초기화
-  font-family: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  line-height: inherit;
+  all: unset; /* 기본만 초기화 */
+  font: inherit;
   color: inherit;
   text-decoration: none;
-  cursor: inherit;
+  cursor: pointer;
+}
 
-  &:hover,
-  &:active,
-  &:focus,
-  &:visited {
-    all: unset; // 모든 상태에서도 동일하게 초기화
-  }
+/* 상태에서는 초기화하지 말고 필요한 것만 */
+a:hover,
+a:focus,
+a:active,
+a:visited {
+  text-decoration: none; /* 밑줄만 통제 */
 }
 
 // ==========================================

@@ -1,5 +1,6 @@
 // 공통 정의 재노출(정의만 있는 파일)
 @forward "base/variables";
+@forward "base/placeholders";
 @forward "mixins/media";
 @forward "mixins/utils";
 

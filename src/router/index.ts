@@ -39,6 +39,13 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("@/views/auth/Login.vue"),
         meta: { requiresAuth: false },
       },
+      {
+        //
+        path: "auto_logout",
+        name: "AutoLogout",
+        component: () => import("@/views/auth/AutoLogout.vue"),
+        meta: { requiresAuth: false },
+      },
     ],
   },
 

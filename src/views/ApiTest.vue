@@ -1,6 +1,40 @@
 <template>
-  <TokenCountdown />
-  <ul>
+  <!-- 로그인 -->
+  <div class="auth-bg">
+    <div class="auth-card">
+      <div class="auth-inner-left">
+        <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 150, height: 150, strokeWidth: 1.5 }">
+          <LogIn />
+        </IconoirProvider>
+      </div>
+      <div class="auth-inner-right">
+        <header>
+          <h3 class="mb-4">법무대리인 등기지원시스템</h3>
+          <h1>로그인</h1>
+        </header>
+
+        <form class="login-form" @submit.prevent="onSubmit">
+          <input v-model="userId" placeholder="아이디" />
+          <input v-model="password" type="password" placeholder="비밀번호" />
+          <ul>
+            <li>
+              <label>
+                <input type="checkbox" />
+                아이디 기억하기
+              </label>
+            </li>
+            <li>
+              <a href="#">비밀번호 변경</a>
+            </li>
+          </ul>
+          <button :disabled="isLoginPending">로그인</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <TokenCountdown v-if="false" />
+  <ul v-if="false">
     <!-- 로그인 -->
     <li>
       <h4>로그인</h4>
@@ -8,7 +42,7 @@
         <input v-model="userId" placeholder="아이디" />
         <input v-model="password" type="password" placeholder="비밀번호" />
         <button :disabled="isLoginPending">로그인</button>
-        <p v-if="error">에러: {{ error.message }}</p>
+        <p v-if="error">에러: {{ error?.message }}</p>
       </form>
     </li>
 
@@ -60,6 +94,8 @@
 </template>
 
 <script setup lang="ts">
+import { IconoirProvider } from "@iconoir/vue";
+import { LogIn } from "@iconoir/vue";
 import { ref } from "vue";
 // import { useRouter } from "vue-router";
 
