@@ -14,11 +14,10 @@
   flex-direction: column;
 }
 
-.auth-card {
+.auth-card-position {
   width: 100%;
   max-width: 1024px;
   margin-inline: auto;
-  height: 600px;
   border-radius: 10px;
   background-color: $white;
   box-shadow: 0 15px 25px #00000026, 0 5px 10px #0000000d;
@@ -51,6 +50,8 @@
    로그인 페이지
    ============================================ */
 .login-card {
+  height: 600px;
+
   &__visual {
     background-color: $accent;
     display: flex;

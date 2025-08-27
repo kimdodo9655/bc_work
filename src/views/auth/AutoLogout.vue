@@ -1,5 +1,5 @@
 <template>
-  <div class="auth-card auto-logout-card">
+  <div class="auth-card-position auto-logout-card">
     <div class="auth-inner-left login-card__visual">
       <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 150, height: 150, strokeWidth: 1.5 }">
         <LogOut />
