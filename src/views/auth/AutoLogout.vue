@@ -1,12 +1,12 @@
 <template>
-  <div class="auth-card-position auto-logout-card">
-    <div class="auth-inner-left login-card__visual">
+  <div class="auth-card-position ac01 auto-logout-card">
+    <div class="ac01-inner-left">
       <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 150, height: 150, strokeWidth: 1.5 }">
         <LogOut />
       </IconoirProvider>
     </div>
 
-    <div class="auth-inner-right auto-logout-card__body">
+    <div class="ac01-inner-right">
       <header class="auto-logout-card__header">
         <h2 class="auto-logout-card__title mb-4">자동 로그아웃</h2>
 

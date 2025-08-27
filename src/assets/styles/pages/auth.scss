@@ -3,6 +3,8 @@
 /* ============================================
    AUTH 레이아웃
    ============================================ */
+
+// 화면 Background
 .auth-bg {
   width: 100vw;
   min-width: 1024px;
@@ -14,6 +16,7 @@
   flex-direction: column;
 }
 
+// contents 영역 공통 포지션
 .auth-card-position {
   width: 100%;
   max-width: 1024px;
@@ -24,25 +27,32 @@
   margin: 60px 0;
   display: flex;
 
-  // 좌/우 2분할
-  .auth-inner-left,
-  .auth-inner-right {
-    width: 50%;
-    height: inherit;
-  }
+  // ---------------------------
+  // auth card type 01
+  // ---------------------------
+  &.ac01 {
+    height: 600px;
 
-  .auth-inner-left {
-    background-color: $accent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+    // 좌/우 2분할
+    .ac01-inner-left,
+    .ac01-inner-right {
+      width: 50%;
+      height: inherit;
+    }
 
-  .auth-inner-right {
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    .ac01-inner-left {
+      background-color: $accent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ac01-inner-right {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
   }
 }
 
@@ -50,23 +60,6 @@
    로그인 페이지
    ============================================ */
 .login-card {
-  height: 600px;
-
-  &__visual {
-    background-color: $accent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  &__body {
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    color: $font-base;
-  }
-
   &__subtitle {
     color: $font-title;
   }
@@ -148,7 +141,7 @@
 }
 
 /* ============================================
-   공통 버튼 스타일
+   공통 버튼 스타일 (a, button 공통 사용)
    ============================================ */
 .link_btn {
   display: inline-flex;

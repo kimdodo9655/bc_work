@@ -1,17 +1,16 @@
 <template>
-  <div class="auth-card-position"></div>
   <!-- <div class="input-wrapper">
       <Search class="icon" />
       <input type="text" placeholder="검색..." />
     </div> -->
-  <div class="auth-card-position login-card">
-    <div class="auth-inner-left login-card__visual">
+  <div class="auth-card-position ac01 login-card">
+    <div class="ac01-inner-left">
       <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 150, height: 150, strokeWidth: 1.5 }">
         <LogIn />
       </IconoirProvider>
     </div>
 
-    <div class="auth-inner-right login-card__body">
+    <div class="ac01-inner-right">
       <header class="login-card__header">
         <h3 class="login-card__subtitle mb-4">법무대리인 등기지원시스템</h3>
         <h1 class="login-card__title">로그인</h1>

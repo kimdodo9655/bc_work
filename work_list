@@ -1,0 +1,26 @@
+Layout (components/)
+* AppHeader.vue
+* AppBreadcrumbs.vue
+* AppFooter.vue
+* NotificationsPopover.vue (시스템 알림)
+* AccountPopover.vue (내 정보 관리)
+
+Common (views/common/)
+* InvalidAccessView.vue (잘못된 페이지 접근)
+
+Auth (views/auth/)
+* AutoLogoutView.vue (자동 로그아웃)
+* LoginView.vue (로그인)
+* ProgramInstallView.vue (프로그램 설치)
+* SiteBlockedView.vue (사이트 접속 차단)
+* EmailVerificationKeyView.vue (이메일 인증 보안키 입력)
+* PasswordSetupView.vue (비밀번호 설정)
+
+Onboarding (views/onboarding/)
+* InstitutionSelectView.vue (금융기관 선택)
+
+Dashboard (views/dashboard/)
+* DashboardHomeView.vue (메인)
+* EstimateListView.vue (등기 견적 관리 목록)
+* EstimateCreateSubmitView.vue (견적서 작성/제출)
+* EstimateReviewWithdrawView.vue (견적서 확인 철회)
