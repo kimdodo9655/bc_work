@@ -5,7 +5,7 @@
     </div> -->
   <div class="auth-card-position ac01 login-card">
     <div class="ac01-inner-left">
-      <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 150, height: 150, strokeWidth: 1.5 }">
+      <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 180, height: 180, strokeWidth: 1.5 }">
         <LogIn />
       </IconoirProvider>
     </div>

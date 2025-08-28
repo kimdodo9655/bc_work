@@ -1,14 +1,14 @@
 <template>
-  <div class="auth-card-position ac01 auto-logout-card">
+  <div class="auth-card-position ac01">
     <div class="ac01-inner-left">
-      <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 150, height: 150, strokeWidth: 1.5 }">
+      <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 180, height: 180, strokeWidth: 1.5 }">
         <LogOut />
       </IconoirProvider>
     </div>
 
     <div class="ac01-inner-right">
-      <header class="auto-logout-card__header">
-        <h2 class="auto-logout-card__title mb-4">자동 로그아웃</h2>
+      <header>
+        <h2 class="mb-4">자동 로그아웃</h2>
 
         <p class="subtext">
           로그인 유지 시간(30분)이 만료되어 자동으로 로그아웃 되었습니다.
@@ -17,7 +17,7 @@
         </p>
       </header>
 
-      <a class="link_btn" href="/auth/login">로그인</a>
+      <button class="link_btn" @click="goToLogin">로그인</button>
     </div>
   </div>
 </template>
@@ -25,4 +25,7 @@
 <script setup lang="ts">
 import { IconoirProvider } from "@iconoir/vue";
 import { LogOut } from "@iconoir/vue";
+import { useNavigation } from "@/composables/useNavigation";
+
+const { goToLogin } = useNavigation();
 </script>
