@@ -68,6 +68,10 @@ td {
   box-sizing: border-box;
 }
 
+html {
+  overflow-y: scroll;
+}
+
 html,
 body,
 #app {

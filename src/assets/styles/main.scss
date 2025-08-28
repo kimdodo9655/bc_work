@@ -19,4 +19,5 @@
 @use "@/assets/styles/pages/auth"; // 로그인 전
 @use "@/assets/styles/pages/onboarding"; // 로그인 후 금융기관 선택
 @use "@/assets/styles/pages/dashboard"; // 로그인 이후
+@use "@/assets/styles/pages/invalid-access"; // 잘못된 접근 페이지 (404, 403 등)
 @use "@/assets/styles/pages/common"; // 공통

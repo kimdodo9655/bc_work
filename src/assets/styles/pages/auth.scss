@@ -6,7 +6,7 @@
 
 // 화면 Background
 .auth-bg {
-  width: 100vw;
+  width: 100%;
   min-width: 1024px;
   min-height: calc(100vh - 80px);
   background-color: $bg;
@@ -38,8 +38,6 @@
   // auth card type 01
   // ---------------------------
   &.ac01 {
-    height: 600px;
-
     // 좌/우 2분할
     .ac01-inner-left,
     .ac01-inner-right {
@@ -68,6 +66,8 @@
    auth card type 01 :: 로그인
    ============================================ */
 .login-card {
+  height: 550px;
+
   &__subtitle {
     color: $font-title;
   }
@@ -81,7 +81,7 @@
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
 
   &__input {
     width: 100%;
@@ -132,7 +132,7 @@
   &__meta {
     display: flex;
     justify-content: space-between;
-    margin: 5px 0 20px;
+    margin: 0 0 20px;
 
     a {
       color: $main;
@@ -146,6 +146,10 @@
       color: $gray-666;
     }
   }
+}
+
+.auto-logout-card {
+  height: 450px;
 }
 
 /* ============================================
@@ -172,6 +176,10 @@
 
   &:hover {
     background-color: $main-dark;
+  }
+
+  &:focus-visible {
+    outline: 5px solid $main-light;
   }
 }
 
