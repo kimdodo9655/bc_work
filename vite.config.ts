@@ -3,8 +3,9 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
 
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   const isBuild = command === "build";
+  const isProduction = mode === "production";
 
   return {
     plugins: [vue()],
@@ -13,26 +14,15 @@ export default defineConfig(({ command }) => {
         "@": fileURLToPath(new URL("./src", import.meta.url)),
       },
     },
-    // css: {
-    //   preprocessorOptions: {
-    //     scss: {
-    //       additionalData: `
-    //         @use "@/assets/styles/base/variables" as *;
-    //         @use "@/assets/styles/mixins/media" as *;
-    //         @use "@/assets/styles/mixins/utils" as *;
-    //       `,
-    //     },
-    //   },
-    // },
     esbuild: {
       legalComments: isBuild ? "none" : "inline",
-      drop: isBuild ? ["console", "debugger"] : [],
+      // 프로덕션 빌드에서만 console 제거
+      drop: isProduction ? ["console", "debugger"] : [],
     },
     server: {
       port: 8101,
       open: true,
       strictPort: true,
-      // host: true, // 외부 기기 접속 필요하면 활성화
     },
   };
 });

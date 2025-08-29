@@ -1,7 +1,7 @@
 @use "@/assets/styles/index" as *;
 
 /* ============================================
-   AUTH 레이아웃
+   AUTH 레이아웃 기본 구조
    ============================================ */
 
 // 화면 Background
@@ -16,7 +16,7 @@
   flex-direction: column;
 }
 
-// contents 영역 공통 포지션
+// Auth Card 공통 포지션
 .auth-card-position {
   width: 100%;
   max-width: 1024px;
@@ -26,19 +26,15 @@
   box-shadow: 0 15px 25px #00000026, 0 5px 10px #0000000d;
   margin: 60px 0;
   display: flex;
-
-  /* 최신 브라우저 */
   overflow: clip;
-  /* 폴백 */
+
+  // 폴백 지원
   @supports not (overflow: clip) {
     overflow: hidden;
   }
 
-  // ---------------------------
-  // auth card type 01
-  // ---------------------------
+  // Auth Card Type 01 (좌우 분할)
   &.ac01 {
-    // 좌/우 2분할
     .ac01-inner-left,
     .ac01-inner-right {
       width: 50%;
@@ -63,30 +59,51 @@
 }
 
 /* ============================================
-   auth card type 01 :: 로그인
+   LOGIN 컴포넌트
    ============================================ */
+
 .login-card {
   height: 550px;
+}
+
+// 로그인 헤더
+.login-header {
+  margin-bottom: 2rem;
 
   &__subtitle {
     color: $font-title;
+    margin-bottom: 1rem;
   }
 
   &__title {
     color: $font-title;
     font-weight: bold;
+    margin: 0;
   }
 }
 
+// 로그인 폼
 .login-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
+}
 
-  &__input {
+/* ============================================
+   INPUT GROUP 컴포넌트
+   ============================================ */
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  &__field {
     width: 100%;
     height: 60px;
-    padding: 0 20px;
+    padding-left: 60px;
+    padding-right: 65px;
+    margin-bottom: 0;
     border: 2px solid $gray-ddd;
     border-radius: 5px;
     font-size: 18px;
@@ -105,57 +122,137 @@
     }
   }
 
-  &__submit {
-    display: inline-flex;
+  &:not(:has(.input-group__toggle)) &__field {
+    padding-right: 20px;
+  }
+
+  &__icon {
+    position: absolute;
+    left: 15px;
+    z-index: 1;
+    pointer-events: none;
+    transition: color 0.2s ease;
+  }
+
+  &:focus-within &__icon {
+    color: $accent;
+  }
+
+  &__toggle {
+    position: absolute;
+    right: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 60px;
-    margin: 0;
-    box-sizing: border-box;
-    border-radius: 5px;
-    border: 0;
-    background-color: $main;
-    color: $white;
-    font-size: 18px;
-    font-weight: bold;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
+    width: 30px;
+    height: 30px;
+    outline: none;
+    transition: color 0.2s ease;
 
-    &:hover {
-      background-color: $main-dark;
+    svg {
+      transition: 0.2s;
+      stroke-width: 2px;
+    }
+
+    &:hover svg {
+      color: $accent;
+    }
+
+    &:focus {
+      outline: none;
     }
   }
-
-  &__meta {
-    display: flex;
-    justify-content: space-between;
-    margin: 0 0 20px;
-
-    a {
-      color: $main;
-      text-decoration: none;
-      &:hover {
-        color: $main-dark;
-      }
-    }
-
-    label {
-      color: $gray-666;
-    }
-  }
-}
-
-.auto-logout-card {
-  height: 450px;
 }
 
 /* ============================================
-   AUTH 공통 버튼 스타일 (a, button 공통 사용)
+   FORM META (폼 하단 정보)
    ============================================ */
-.link_btn {
+
+.form-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 20px;
+
+  &__left,
+  &__right {
+    display: flex;
+    align-items: center;
+  }
+}
+
+// 체크박스 버튼
+.checkbox-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-right: 5px;
+  outline: none;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  font-weight: 600;
+  color: $font-light;
+
+  svg {
+    width: 25px;
+    height: 25px;
+    stroke-width: 2px;
+    margin-right: 10px;
+  }
+
+  &:hover {
+    color: $main;
+
+    svg {
+      color: $main;
+    }
+  }
+
+  &:focus-visible {
+    outline: 5px solid $main-light;
+  }
+
+  // 체크된 상태
+  &--checked {
+    color: $main;
+
+    svg {
+      color: $main;
+    }
+  }
+}
+
+// 링크 버튼
+.link-btn {
+  border: 0;
+  background: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: $main;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: $main-dark;
+  }
+
+  &:focus-visible {
+    outline: 5px solid $main-light;
+  }
+}
+
+/* ============================================
+   SUBMIT 버튼
+   ============================================ */
+
+.submit-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -172,7 +269,7 @@
   letter-spacing: 1.5px;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 
   &:hover {
     background-color: $main-dark;
@@ -184,8 +281,25 @@
 }
 
 /* ============================================
+   AUTO LOGOUT 컴포넌트
+   ============================================ */
+
+.auto-logout-card {
+  height: 450px;
+}
+
+/* ============================================
+   공통 유틸리티 버튼
+   ============================================ */
+
+.link_btn {
+  @extend .submit-btn;
+}
+
+/* ============================================
    접근성 - 스크린 리더용 숨김 텍스트
    ============================================ */
+
 .visually-hidden,
 .sr-only {
   position: absolute;
