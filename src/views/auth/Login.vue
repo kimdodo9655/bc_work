@@ -15,6 +15,12 @@
         <h1 class="login-header__title">로그인</h1>
       </header>
 
+      <!-- MAC 주소 오류 표시 -->
+      <div v-if="macError" class="error-message">
+        <p>⚠️ {{ macError }}</p>
+        <button type="button" @click="retryGetMacAddress" class="retry-btn">다시 시도</button>
+      </div>
+
       <!-- 로그인 폼 -->
       <form class="login-form" @submit.prevent="handleSubmit">
         <IconoirProvider :icon-props="inputIconProps">
@@ -50,8 +56,17 @@
         </IconoirProvider>
 
         <!-- 제출 버튼 -->
-        <button type="submit" class="submit-btn">로그인</button>
+        <button type="submit" class="submit-btn" :disabled="isLoginPending || isMacLoading">
+          <span v-if="isMacLoading">MAC 주소 확인 중...</span>
+          <span v-else-if="isLoginPending">로그인 중...</span>
+          <span v-else>로그인</span>
+        </button>
       </form>
+
+      <!-- 디버그 정보 (개발 환경에서만 표시) -->
+      <div v-if="isDev && currentMacAddress" class="debug-info">
+        <small>🔧 현재 MAC 주소: {{ currentMacAddress }}</small>
+      </div>
     </div>
   </div>
 </template>
@@ -59,15 +74,20 @@
 <script setup lang="ts">
 import { IconoirProvider } from "@iconoir/vue";
 import { LogIn, User, Lock, Eye, EyeClosed, CheckSquare, CheckSquareSolid } from "@iconoir/vue";
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, computed } from "vue";
 import { useLogin } from "@/composables/auth/useLogin";
 import { useNavigation } from "@/composables/useNavigation";
+import { useMacAddress } from "@/composables/useMacAddress";
+import { isDev } from "@/utils/env";
 
 // ==========================================
 // 컴포저블
 // ==========================================
 const { goToPasswordReset } = useNavigation();
-const { mutate: login } = useLogin();
+const { mutate: login, isPending: isLoginPending } = useLogin();
+
+// ✅ MAC 주소 관리
+const { macAddress: currentMacAddress, isLoading: isMacLoading, error: macError, fetchMacAddress, resetMacAddress } = useMacAddress();
 
 // ==========================================
 // 반응형 상태
@@ -79,9 +99,6 @@ const formData = reactive({
 
 const showPassword = ref(false);
 const rememberUser = ref(false);
-
-// 실제로는 시스템에서 가져와야 할 MAC 주소
-const macAddress = "42:00:40:f2:b8:43";
 
 // ==========================================
 // 계산된 속성
@@ -100,16 +117,26 @@ const inputIconProps = {
   height: 30,
 };
 
+// 폼 유효성 검사
+const isFormValid = computed(() => {
+  return formData.userId.trim() !== "" && formData.password.trim() !== "";
+});
+
 // ==========================================
 // 생명주기 훅
 // ==========================================
-onMounted(() => {
+onMounted(async () => {
   loadSavedUserData();
+  await initializeMacAddress();
 });
 
 // ==========================================
 // 메서드
 // ==========================================
+
+/**
+ * 저장된 사용자 데이터 로드
+ */
 function loadSavedUserData() {
   const savedUser = localStorage.getItem("rememberedUser");
   const isRemembered = localStorage.getItem("rememberUser") === "true";
@@ -120,7 +147,47 @@ function loadSavedUserData() {
   }
 }
 
-function handleSubmit() {
+/**
+ * MAC 주소 초기화
+ */
+async function initializeMacAddress() {
+  try {
+    await fetchMacAddress();
+    console.log("✅ MAC 주소 초기화 완료:", currentMacAddress.value);
+  } catch (error) {
+    console.error("🚨 MAC 주소 초기화 실패:", error);
+  }
+}
+
+/**
+ * MAC 주소 재시도
+ */
+async function retryGetMacAddress() {
+  resetMacAddress();
+  await initializeMacAddress();
+}
+
+/**
+ * 로그인 폼 제출 처리
+ */
+async function handleSubmit() {
+  // 폼 유효성 검사
+  if (!isFormValid.value) {
+    alert("아이디와 비밀번호를 입력해주세요.");
+    return;
+  }
+
+  // MAC 주소 확인 및 재시도
+  if (!currentMacAddress.value) {
+    console.log("MAC 주소가 없어서 다시 가져오는 중...");
+    try {
+      await fetchMacAddress();
+    } catch (error) {
+      alert("MAC 주소를 가져올 수 없습니다. 프로그램이 정상적으로 설치되었는지 확인해주세요.");
+      return;
+    }
+  }
+
   // 아이디 기억하기 처리
   handleRememberUser();
 
@@ -128,10 +195,13 @@ function handleSubmit() {
   login({
     userId: formData.userId,
     password: formData.password,
-    macAddress,
+    macAddress: currentMacAddress.value,
   });
 }
 
+/**
+ * 아이디 기억하기 처리
+ */
 function handleRememberUser() {
   if (rememberUser.value) {
     localStorage.setItem("rememberedUser", formData.userId);
@@ -142,10 +212,16 @@ function handleRememberUser() {
   }
 }
 
+/**
+ * 비밀번호 보기/숨기기 토글
+ */
 function togglePasswordVisibility() {
   showPassword.value = !showPassword.value;
 }
 
+/**
+ * 아이디 기억하기 토글
+ */
 function toggleRememberUser() {
   rememberUser.value = !rememberUser.value;
 
@@ -156,3 +232,97 @@ function toggleRememberUser() {
   }
 }
 </script>
+
+<style scoped>
+/* ==========================================
+   에러 메시지 스타일
+   ========================================== */
+.error-message {
+  margin-bottom: 1rem;
+  padding: 12px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 5px;
+  color: #c33;
+}
+
+.error-message p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.retry-btn {
+  background: #c33;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #a22;
+}
+
+/* ==========================================
+   디버그 정보 스타일
+   ========================================== */
+.debug-info {
+  margin-top: 1rem;
+  padding: 8px;
+  background-color: #f0f8ff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  text-align: center;
+}
+
+.debug-info small {
+  color: #666;
+  font-family: monospace;
+}
+
+/* ==========================================
+   제출 버튼 비활성화 상태
+   ========================================== */
+.submit-btn:disabled {
+  background-color: #ccc !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.submit-btn:disabled:hover {
+  background-color: #ccc !important;
+}
+
+/* ==========================================
+   로딩 상태 애니메이션
+   ========================================== */
+.submit-btn:disabled span {
+  position: relative;
+}
+
+.submit-btn:disabled span::after {
+  content: "";
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+</style>
