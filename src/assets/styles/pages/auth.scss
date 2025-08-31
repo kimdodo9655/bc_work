@@ -1,4 +1,4 @@
-@use '@/assets/styles/index' as *;
+@use "@/assets/styles/index" as *;
 
 /* ============================================
    AUTH 레이아웃 기본 구조
@@ -325,50 +325,68 @@
 }
 
 /* ============================================
-   site-blocked 컴포넌트
+   SITE BLOCKED 컴포넌트
    ============================================ */
 
 .site-blocked-card {
   height: 350px;
   margin-bottom: 20px;
+}
 
-  .site-blocked-mac {
-    display: flex;
-    justify-content: space-between;
+// 사이트 차단 헤더
+.site-blocked-header {
+  margin-bottom: 2rem;
 
-    > li {
-      padding: 20px;
-      box-sizing: border-box;
-      border: 2px solid $main-light;
+  &__title {
+    color: $font-title;
+    font-weight: bold;
+    margin: 0 0 1rem 0;
+  }
+
+  &__subtitle {
+    color: $font-base;
+  }
+}
+
+// MAC 주소 정보
+.site-blocked-mac {
+  display: flex;
+  justify-content: space-between;
+
+  > li {
+    padding: 20px;
+    box-sizing: border-box;
+    border: 2px solid $main-light;
+    border-radius: 5px;
+    width: calc(50% - 10px);
+    gap: 20px;
+    text-align: center;
+
+    > h5 {
+      color: $main-dark;
+    }
+
+    > p {
+      padding: 10px;
+      background-color: $bg;
       border-radius: 5px;
-      width: calc(50% - 10px);
-      gap: 20px;
-      text-align: center;
+      font-weight: 600;
+      color: $main-dark;
 
-      > h5 {
-        color: $main-dark;
-      }
-      > p {
-        padding: 10px;
-        background-color: $bg;
-        border-radius: 5px;
-        font-weight: 600;
-        color: $main-dark;
-      }
-
-      p.user {
+      &.user {
         color: $red;
       }
     }
   }
 }
 
+// 사이트 차단 안내
 .site-blocked-notice {
   margin: 0 0 60px 0;
   padding: 40px;
-
   flex-direction: column;
   align-items: center;
+  text-align: center;
 
   > * {
     color: $main-dark;
@@ -377,6 +395,186 @@
   button {
     width: 40%;
     color: $white;
+  }
+}
+
+// 사이트 차단 규칙 리스트
+.site-blocked-rules {
+  text-align: left;
+  margin: 0 auto 30px;
+  padding-left: 20px;
+  list-style: decimal;
+
+  li {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    color: $main-dark;
+    display: list-item;
+  }
+}
+
+// 연락처 정보
+.site-blocked-contact {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+
+  p:first-of-type {
+    margin-right: 40px;
+  }
+
+  p {
+    font-size: 18px;
+    font-weight: 600;
+    color: $main-dark;
+
+    span {
+      font-size: 16px;
+      background-color: $main-dark;
+      padding: 5px 10px 6px;
+      border-radius: 5px;
+      color: $white;
+      margin-right: 10px;
+    }
+  }
+}
+
+/* ============================================
+   PASSWORD SETUP 컴포넌트
+   ============================================ */
+
+.password-setup-card {
+  height: 450px;
+  margin-bottom: 20px;
+}
+
+// 비밀번호 설정 헤더
+.password-setup-header {
+  margin-bottom: 2rem;
+
+  &__subtitle {
+    color: $font-title;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    color: $font-title;
+    font-weight: bold;
+    margin: 0;
+  }
+}
+
+// 비밀번호 설정 폼
+.password-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+// 비밀번호 설정 안내
+.password-setup-notice {
+  margin: 0 0 60px 0;
+  padding: 40px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  > * {
+    color: $main-dark;
+  }
+}
+
+// 비밀번호 규칙 리스트
+.password-setup-rules {
+  text-align: left;
+  margin: 0 auto;
+  padding-left: 20px;
+  list-style: decimal;
+
+  li {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    color: $main-dark;
+    display: list-item;
+  }
+}
+
+/* ============================================
+   EMAIL VERIFICATION 컴포넌트
+   ============================================ */
+
+.email-verification-card {
+  height: 450px;
+}
+
+// 이메일 인증 헤더
+.email-verification-header {
+  margin-bottom: 2rem;
+
+  &__subtitle {
+    color: $font-title;
+    margin-bottom: 1rem;
+  }
+
+  &__title {
+    color: $font-title;
+    font-weight: bold;
+    margin: 0 0 1rem 0;
+  }
+
+  &__description {
+    color: $font-base;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+}
+
+// 이메일 인증 폼
+.email-verification-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// 이메일 인증 안내
+.email-verification-notice {
+  margin: 0 0 60px 0;
+  padding: 40px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  > * {
+    color: $main-dark;
+  }
+
+  .resend-btn {
+    width: 300px;
+    background-color: $accent;
+
+    &:hover {
+      background-color: $main;
+    }
+  }
+}
+
+// 이메일 인증 규칙 리스트
+.email-verification-rules {
+  text-align: left;
+  margin: 0 auto 40px;
+  padding-left: 20px;
+  list-style: decimal;
+
+  li {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    color: $main-dark;
+    display: list-item;
+
+    strong {
+      color: $red;
+      font-weight: 600;
+    }
   }
 }
 
