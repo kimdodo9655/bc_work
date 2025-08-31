@@ -1,12 +1,11 @@
-import { createApp } from 'vue';
-import App from './App.vue';
-import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
-import '@/assets/styles/main.scss';
-import router from './router';
-import { createPinia } from 'pinia';
-import { setupAxiosInterceptors } from '@/api/client/setupAxios';
-import { useAuthStore } from './stores/auth';
-import { setupDevRouteHotkeys } from './plugins/devRouteHotkeys';
+import { createApp } from "vue";
+import App from "./App.vue";
+import { VueQueryPlugin, QueryClient } from "@tanstack/vue-query";
+import "@/assets/styles/main.scss";
+import router from "./router";
+import { createPinia } from "pinia";
+import { setupAxiosInterceptors } from "@/api/client/setupAxios";
+import { useAuthStore } from "./stores/auth";
 
 const app = createApp(App);
 const queryClient = new QueryClient();
@@ -17,9 +16,7 @@ setupAxiosInterceptors();
 app.use(createPinia());
 app.use(router);
 app.use(VueQueryPlugin, { queryClient });
-app.mount('#app');
-
-setupDevRouteHotkeys(router); // 개발 단축키
+app.mount("#app");
 
 // ✅ 앱 초기화 후 자동 로그아웃 타이머 설정
 const authStore = useAuthStore();
