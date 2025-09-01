@@ -41,6 +41,14 @@
         <h5>공통</h5>
         <button @click="goToInvalidAccess">잘못된 접근 (404)</button>
       </div>
+
+      <div class="nav-section">
+        <button @click="showSuccess">성공 토스트</button>
+        <button @click="showError">에러 토스트</button>
+        <button @click="doSomething">로딩 테스트</button>
+        <button @click="showAlert">알럿 보기</button>
+        <button @click="showConfirm">컨펌 보기</button>
+      </div>
     </div>
   </footer>
 </template>
@@ -48,6 +56,52 @@
 <script setup lang="ts">
 import { useNavigation } from "@/composables/useNavigation";
 import { isDev } from "@/utils/env";
+import { useUI } from "@/composables/useUI";
+
+const ui = useUI();
+
+// 토스트 사용
+const showSuccess = () => {
+  ui.success("성공했습니다!");
+};
+
+const showError = () => {
+  ui.error("오류가 발생했습니다.");
+};
+
+// 로딩 사용
+const doSomething = async () => {
+  ui.showLoading("처리 중...");
+
+  // API 호출 등
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  ui.hideLoading();
+  ui.success("완료되었습니다!");
+};
+
+// 알럿 사용
+const showAlert = () => {
+  ui.alert("알림", "이것은 중요한 메시지입니다.", () => {
+    console.log("확인 버튼 클릭됨");
+  });
+};
+
+// 컨펌 사용
+const showConfirm = () => {
+  ui.confirm(
+    "삭제 확인",
+    "정말 삭제하시겠습니까?",
+    () => {
+      // 확인 버튼 클릭시
+      ui.success("삭제되었습니다.");
+    },
+    () => {
+      // 취소 버튼 클릭시
+      ui.info("취소되었습니다.");
+    }
+  );
+};
 
 const {
   // Auth
