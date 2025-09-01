@@ -4,6 +4,11 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>{{ store.confirm.title }}</h3>
+          <button @click="handleCancel">
+            <IconoirProvider :icon-props="{ color: '#bbbbbb', width: 30, height: 30, 'stroke-width': 2.5 }">
+              <Xmark />
+            </IconoirProvider>
+          </button>
         </div>
         <div class="modal-body">
           <p>{{ store.confirm.message }}</p>
@@ -18,6 +23,8 @@
 </template>
 
 <script setup lang="ts">
+import { IconoirProvider } from "@iconoir/vue";
+import { Xmark } from "@iconoir/vue";
 import { useUIStore } from "@/stores/ui";
 const store = useUIStore();
 
@@ -61,6 +68,9 @@ const handleCancel = () => {
 
 .modal-header {
   padding: 1.5rem 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .modal-header h3 {
@@ -69,14 +79,36 @@ const handleCancel = () => {
   color: #333;
 }
 
+.modal-header button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background-color: transparent;
+  color: #999999;
+  cursor: pointer;
+  transition: 0.5s;
+  padding: 0;
+}
+
+.modal-header button svg {
+  transition: 0.5s;
+}
+
+.modal-header button:hover svg {
+  color: #5f9ea0;
+}
+
 .modal-body {
   padding: 1rem 1.5rem;
 }
 
 .modal-body p {
-  margin: 0;
-  color: #666;
-  line-height: 1.5;
+  background-color: #ebf7f8;
+  padding: 25px;
+  border-radius: 5px;
+  margin: 10px 0 0;
+  color: #4d9294;
+  line-height: 1.7;
 }
 
 .modal-footer {
@@ -93,6 +125,7 @@ const handleCancel = () => {
   border-radius: 5px;
   font-weight: 600;
   cursor: pointer;
+  width: calc(50% - 5px);
 }
 
 .btn--primary {

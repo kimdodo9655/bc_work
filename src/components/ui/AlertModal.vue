@@ -4,6 +4,11 @@
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>{{ store.alert.title }}</h3>
+          <button @click="handleClose">
+            <IconoirProvider :icon-props="{ color: '#bbbbbb', width: 30, height: 30, 'stroke-width': 2.5 }">
+              <Xmark />
+            </IconoirProvider>
+          </button>
         </div>
         <div class="modal-body">
           <p>{{ store.alert.message }}</p>
@@ -17,6 +22,8 @@
 </template>
 
 <script setup lang="ts">
+import { IconoirProvider } from "@iconoir/vue";
+import { Xmark } from "@iconoir/vue";
 import { useUIStore } from "@/stores/ui";
 const store = useUIStore();
 
@@ -39,7 +46,7 @@ const handleClose = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: #00000099;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,10 +60,15 @@ const handleClose = () => {
   min-width: 300px;
   max-width: 500px;
   width: 90%;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
   padding: 1.5rem 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .modal-header h3 {
@@ -65,18 +77,40 @@ const handleClose = () => {
   color: #333;
 }
 
+.modal-header button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background-color: transparent;
+  color: #999999;
+  cursor: pointer;
+  transition: 0.5s;
+  padding: 0;
+}
+
+.modal-header button svg {
+  transition: 0.5s;
+}
+
+.modal-header button:hover svg {
+  color: #5f9ea0;
+}
+
 .modal-body {
   padding: 1rem 1.5rem;
 }
 
 .modal-body p {
-  margin: 0;
-  color: #666;
-  line-height: 1.5;
+  background-color: #ebf7f8;
+  padding: 25px;
+  border-radius: 5px;
+  margin: 10px 0 0;
+  color: #4d9294;
+  line-height: 1.7;
 }
 
 .modal-footer {
-  padding: 1rem 1.5rem 1.5rem;
+  padding: 0 1.5rem 1.5rem;
   text-align: center;
 }
 
@@ -89,6 +123,7 @@ const handleClose = () => {
 }
 
 .btn--primary {
+  width: 100%;
   background: #5f9ea0;
   color: white;
 }
