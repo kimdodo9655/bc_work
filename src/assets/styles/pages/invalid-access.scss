@@ -4,7 +4,7 @@
    INVALID ACCESS 페이지 레이아웃 (404, 403 등)
    ============================================ */
 
-// Invalid Access Background (auth-bg와 동일하지만 구분)
+// Invalid Access Background
 .invalid-access-bg {
   width: 100%;
   min-width: 1024px;
@@ -16,7 +16,7 @@
   flex-direction: column;
 }
 
-// 잘못된 접근 페이지 전용 스타일
+// 잘못된 접근 페이지 컨테이너
 .invalid-access {
   display: flex;
   flex-direction: column;
@@ -41,19 +41,10 @@
   }
 
   &__actions {
-    border-radius: 50px;
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    button {
-      width: 400px;
-      display: block;
-      margin: 0 auto;
-    }
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
   }
 }
 

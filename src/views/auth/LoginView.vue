@@ -1,22 +1,22 @@
 <template>
-  <div class="auth-card-position ac01 login-card">
+  <div class="auth-card auth-card--split-half auth-card--h-550">
     <!-- 좌측 이미지 영역 -->
-    <div class="ac01-inner-left">
+    <div class="auth-card__left">
       <IconoirProvider :icon-props="iconProps">
         <LogIn />
       </IconoirProvider>
     </div>
 
     <!-- 우측 로그인 폼 영역 -->
-    <div class="ac01-inner-right">
+    <div class="auth-card__right">
       <!-- 헤더 -->
-      <header class="login-header">
-        <h3 class="login-header__subtitle">법무대리인 등기지원시스템</h3>
-        <h1 class="login-header__title">로그인</h1>
+      <header class="auth-header">
+        <h3 class="auth-header__subtitle">법무대리인 등기지원시스템</h3>
+        <h1 class="auth-header__title">로그인</h1>
       </header>
 
       <!-- 로그인 폼 -->
-      <form class="login-form" @submit.prevent="handleSubmit">
+      <form class="auth-form" @submit.prevent="handleSubmit">
         <IconoirProvider :icon-props="inputIconProps">
           <!-- 아이디 입력 -->
           <div class="input-group">
@@ -27,7 +27,7 @@
           <!-- 비밀번호 입력 -->
           <div class="input-group">
             <Lock class="input-group__icon" />
-            <input v-model="formData.password" class="input-group__field" :type="showPassword ? 'text' : 'password'" placeholder="비밀번호" autocomplete="current-password" />
+            <input v-model="formData.password" class="input-group__field input-group__field--with-toggle" :type="showPassword ? 'text' : 'password'" placeholder="비밀번호" autocomplete="current-password" />
             <button type="button" class="input-group__toggle" @click="togglePasswordVisibility" :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'" tabindex="-1">
               <Eye v-if="!showPassword" />
               <EyeClosed v-else />
@@ -50,7 +50,7 @@
         </IconoirProvider>
 
         <!-- 제출 버튼 -->
-        <button type="submit" class="submit-btn">로그인</button>
+        <button type="submit" class="btn btn--primary btn--large">로그인</button>
       </form>
     </div>
   </div>

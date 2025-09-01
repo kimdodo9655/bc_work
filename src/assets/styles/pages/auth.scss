@@ -1,10 +1,10 @@
 @use "@/assets/styles/index" as *;
 
 /* ============================================
-   AUTH 레이아웃 기본 구조
+   AUTH 레이아웃 공통
    ============================================ */
 
-// 화면 Background
+// 전체 배경
 .auth-bg {
   width: 100%;
   min-width: 1024px;
@@ -16,86 +16,75 @@
   flex-direction: column;
 }
 
-// Auth Card 공통 포지션
-.auth-card-position {
+/* ============================================
+   AUTH CARD 공통 레이아웃
+   ============================================ */
+
+.auth-card {
   width: 100%;
   max-width: 1024px;
-  margin-inline: auto;
+  margin: 60px auto;
   border-radius: 10px;
   background-color: $white;
   box-shadow: 0 15px 25px #00000026, 0 5px 10px #0000000d;
-  margin: 60px 0;
   display: flex;
   overflow: clip;
 
-  // 폴백 지원
   @supports not (overflow: clip) {
     overflow: hidden;
   }
 
-  // Auth Card Type 01 (좌우 분할)
-  &.ac01 {
-    .ac01-inner-left,
-    .ac01-inner-right {
+  // 카드 타입별 레이아웃
+  &--split-half {
+    .auth-card__left,
+    .auth-card__right {
       width: 50%;
-      height: inherit;
-    }
-
-    .ac01-inner-left {
-      background-color: $accent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    .ac01-inner-right {
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
     }
   }
 
-  // Auth Card Type 02 (좌우 분할)
-  &.ac02 {
-    .ac02-inner-left,
-    .ac02-inner-right {
+  &--split-narrow {
+    .auth-card__left {
       width: 30%;
-      height: inherit;
     }
-
-    .ac02-inner-right {
+    .auth-card__right {
       width: 70%;
     }
+  }
 
-    .ac02-inner-left {
-      background-color: $accent;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+  // 카드 높이 변형
+  &--h-550 {
+    height: 550px;
+  }
+  &--h-450 {
+    height: 450px;
+  }
+  &--h-350 {
+    height: 350px;
+  }
 
-    .ac02-inner-right {
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
+  // 좌측 영역 (이미지/아이콘)
+  &__left {
+    background-color: $accent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  // 우측 영역 (폼 콘텐츠)
+  &__right {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
 }
 
 /* ============================================
-   LOGIN 컴포넌트
+   AUTH HEADER 공통
    ============================================ */
 
-.login-card {
-  height: 550px;
-}
-
-// 로그인 헤더
-.login-header {
+.auth-header {
   margin-bottom: 2rem;
 
   &__subtitle {
@@ -106,12 +95,22 @@
   &__title {
     color: $font-title;
     font-weight: bold;
-    margin: 0;
+    margin: 0 0 1rem 0;
+  }
+
+  &__description {
+    color: $font-base;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-top: 1rem;
   }
 }
 
-// 로그인 폼
-.login-form {
+/* ============================================
+   AUTH FORM 공통
+   ============================================ */
+
+.auth-form {
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -130,8 +129,7 @@
     width: 100%;
     height: 60px;
     padding-left: 60px;
-    padding-right: 65px;
-    margin-bottom: 0;
+    padding-right: 20px;
     border: 2px solid $gray-ddd;
     border-radius: 5px;
     font-size: 18px;
@@ -145,13 +143,14 @@
     }
 
     &:focus {
-      border: 2px solid $main-light;
+      border-color: $main-light;
       outline: 5px solid $main-light;
     }
-  }
 
-  &:not(:has(.input-group__toggle)) &__field {
-    padding-right: 20px;
+    // 토글 버튼이 있을 때 우측 패딩 조정
+    &--with-toggle {
+      padding-right: 65px;
+    }
   }
 
   &__icon {
@@ -159,11 +158,8 @@
     left: 15px;
     z-index: 1;
     pointer-events: none;
+    color: $gray-ddd;
     transition: color 0.2s ease;
-  }
-
-  &:focus-within &__icon {
-    color: $accent;
   }
 
   &__toggle {
@@ -194,6 +190,11 @@
       outline: none;
     }
   }
+
+  // 포커스 상태에서 아이콘 색상 변경
+  &:focus-within &__icon {
+    color: $accent;
+  }
 }
 
 /* ============================================
@@ -213,15 +214,17 @@
   }
 }
 
-// 체크박스 버튼
+/* ============================================
+   CHECKBOX & LINK 버튼
+   ============================================ */
+
 .checkbox-btn {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 0 5px 0 0;
   display: flex;
   align-items: flex-start;
-  padding-right: 5px;
   outline: none;
   transition: all 0.2s ease;
   font-size: 16px;
@@ -235,7 +238,8 @@
     margin-right: 10px;
   }
 
-  &:hover {
+  &:hover,
+  &--checked {
     color: $main;
 
     svg {
@@ -246,18 +250,8 @@
   &:focus-visible {
     outline: 5px solid $main-light;
   }
-
-  // 체크된 상태
-  &--checked {
-    color: $main;
-
-    svg {
-      color: $main;
-    }
-  }
 }
 
-// 링크 버튼
 .link-btn {
   border: 0;
   background: none;
@@ -277,309 +271,216 @@
 }
 
 /* ============================================
-   SUBMIT 버튼
+   SUBMIT & ACTION 버튼
    ============================================ */
 
-.submit-btn {
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 60px;
-  margin: 0;
-  box-sizing: border-box;
+  padding: 0;
   border-radius: 5px;
   border: 0;
-  background-color: $main;
-  color: $white;
-  font-size: 18px;
   font-weight: bold;
-  letter-spacing: 1.5px;
-  cursor: pointer;
   text-decoration: none;
+  cursor: pointer;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 
-  &:hover {
-    background-color: $main-dark;
+  &--primary {
+    background-color: $main;
+    color: $white;
+
+    &:hover {
+      background-color: $main-dark;
+    }
+
+    &:focus-visible {
+      outline: 5px solid $main-light;
+    }
   }
 
-  &:focus-visible {
-    outline: 5px solid $main-light;
+  &--secondary {
+    background-color: $accent;
+    color: $white;
+
+    &:hover {
+      background-color: $main;
+    }
+
+    &:focus-visible {
+      outline: 5px solid $main-light;
+    }
+  }
+
+  &--large {
+    width: 100%;
+    height: 60px;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+  }
+
+  &--medium {
+    width: 300px;
+    height: 50px;
+    font-size: 16px;
+  }
+
+  &--wide-40 {
+    width: 40%;
+    height: 50px;
+    font-size: 16px;
   }
 }
 
 /* ============================================
-   AUTO LOGOUT 컴포넌트
+   INFO CARD & NOTICE 섹션
    ============================================ */
 
-.auto-logout-card {
-  height: 450px;
-}
-
-/* ============================================
-   공통 유틸리티 버튼
-   ============================================ */
-
-.link_btn {
-  @extend .submit-btn;
-}
-
-/* ============================================
-   SITE BLOCKED 컴포넌트
-   ============================================ */
-
-.site-blocked-card {
-  height: 350px;
-  margin-bottom: 20px;
-}
-
-// 사이트 차단 헤더
-.site-blocked-header {
-  margin-bottom: 2rem;
+.info-card {
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto 60px;
+  border-radius: 10px;
+  background-color: $white;
+  box-shadow: 0 15px 25px #00000026, 0 5px 10px #0000000d;
+  padding: 40px;
+  box-sizing: border-box;
+  text-align: center;
 
   &__title {
-    color: $font-title;
-    font-weight: bold;
-    margin: 0 0 1rem 0;
+    color: $main-dark;
+    margin-bottom: 2rem;
   }
 
-  &__subtitle {
-    color: $font-base;
+  &__content {
+    color: $main-dark;
+    margin-bottom: 2rem;
   }
 }
 
-// MAC 주소 정보
-.site-blocked-mac {
+.notice-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &__rules {
+    text-align: left;
+    margin: 0 auto 2rem;
+    padding-left: 20px;
+    list-style: decimal;
+
+    li {
+      margin-bottom: 12px;
+      line-height: 1.6;
+      color: $main-dark;
+      display: list-item;
+
+      strong {
+        color: $red;
+        font-weight: 600;
+      }
+    }
+  }
+
+  &__contact {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+
+    p:first-of-type {
+      margin-right: 40px;
+    }
+
+    p {
+      font-size: 18px;
+      font-weight: 600;
+      color: $main-dark;
+
+      span {
+        font-size: 16px;
+        background-color: $main-dark;
+        padding: 5px 10px 6px;
+        border-radius: 5px;
+        color: $white;
+        margin-right: 10px;
+      }
+    }
+  }
+}
+
+/* ============================================
+   MAC ADDRESS INFO 컴포넌트
+   ============================================ */
+
+.mac-info {
   display: flex;
   justify-content: space-between;
 
-  > li {
+  &__item {
     padding: 20px;
     box-sizing: border-box;
     border: 2px solid $main-light;
     border-radius: 5px;
     width: calc(50% - 10px);
-    gap: 20px;
     text-align: center;
 
-    > h5 {
+    &-title {
       color: $main-dark;
+      margin-bottom: 1rem;
     }
 
-    > p {
+    &-value {
       padding: 10px;
       background-color: $bg;
       border-radius: 5px;
       font-weight: 600;
       color: $main-dark;
 
-      &.user {
+      &--error {
         color: $red;
       }
     }
   }
 }
 
-// 사이트 차단 안내
-.site-blocked-notice {
-  margin: 0 0 60px 0;
-  padding: 40px;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-
-  > * {
-    color: $main-dark;
-  }
-
-  button {
-    width: 40%;
-    color: $white;
-  }
-}
-
-// 사이트 차단 규칙 리스트
-.site-blocked-rules {
-  text-align: left;
-  margin: 0 auto 30px;
-  padding-left: 20px;
-  list-style: decimal;
-
-  li {
-    margin-bottom: 12px;
-    line-height: 1.6;
-    color: $main-dark;
-    display: list-item;
-  }
-}
-
-// 연락처 정보
-.site-blocked-contact {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
-
-  p:first-of-type {
-    margin-right: 40px;
-  }
-
-  p {
-    font-size: 18px;
-    font-weight: 600;
-    color: $main-dark;
-
-    span {
-      font-size: 16px;
-      background-color: $main-dark;
-      padding: 5px 10px 6px;
-      border-radius: 5px;
-      color: $white;
-      margin-right: 10px;
-    }
-  }
-}
-
 /* ============================================
-   PASSWORD SETUP 컴포넌트
+   특정 페이지별 스타일 확장
    ============================================ */
 
-.password-setup-card {
-  height: 450px;
+// 자동 로그아웃
+.auto-logout {
+  .auth-header__title {
+    margin-bottom: 1rem;
+  }
+
+  .auth-header__description {
+    color: $font-base;
+  }
+}
+
+// 사이트 차단
+.site-blocked {
   margin-bottom: 20px;
 }
 
-// 비밀번호 설정 헤더
-.password-setup-header {
-  margin-bottom: 2rem;
-
-  &__subtitle {
-    color: $font-title;
-    margin-bottom: 1rem;
-  }
-
-  &__title {
-    color: $font-title;
-    font-weight: bold;
-    margin: 0;
-  }
+// 비밀번호 설정
+.password-setup {
+  margin-bottom: 20px;
 }
 
-// 비밀번호 설정 폼
-.password-setup-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
+// 이메일 인증
+.email-verification {
+  margin-bottom: 20px;
 
-// 비밀번호 설정 안내
-.password-setup-notice {
-  margin: 0 0 60px 0;
-  padding: 40px;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-
-  > * {
-    color: $main-dark;
-  }
-}
-
-// 비밀번호 규칙 리스트
-.password-setup-rules {
-  text-align: left;
-  margin: 0 auto;
-  padding-left: 20px;
-  list-style: decimal;
-
-  li {
-    margin-bottom: 12px;
-    line-height: 1.6;
-    color: $main-dark;
-    display: list-item;
+  .notice-section__rules li strong {
+    color: $red;
+    font-weight: 600;
   }
 }
 
 /* ============================================
-   EMAIL VERIFICATION 컴포넌트
-   ============================================ */
-
-.email-verification-card {
-  height: 450px;
-}
-
-// 이메일 인증 헤더
-.email-verification-header {
-  margin-bottom: 2rem;
-
-  &__subtitle {
-    color: $font-title;
-    margin-bottom: 1rem;
-  }
-
-  &__title {
-    color: $font-title;
-    font-weight: bold;
-    margin: 0 0 1rem 0;
-  }
-
-  &__description {
-    color: $font-base;
-    font-size: 16px;
-    line-height: 1.5;
-  }
-}
-
-// 이메일 인증 폼
-.email-verification-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-// 이메일 인증 안내
-.email-verification-notice {
-  margin: 0 0 60px 0;
-  padding: 40px;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-
-  > * {
-    color: $main-dark;
-  }
-
-  .resend-btn {
-    width: 300px;
-    background-color: $accent;
-
-    &:hover {
-      background-color: $main;
-    }
-  }
-}
-
-// 이메일 인증 규칙 리스트
-.email-verification-rules {
-  text-align: left;
-  margin: 0 auto 40px;
-  padding-left: 20px;
-  list-style: decimal;
-
-  li {
-    margin-bottom: 15px;
-    line-height: 1.6;
-    color: $main-dark;
-    display: list-item;
-
-    strong {
-      color: $red;
-      font-weight: 600;
-    }
-  }
-}
-
-/* ============================================
-   접근성 - 스크린 리더용 숨김 텍스트
+   접근성 - 스크린 리더용 숨김
    ============================================ */
 
 .visually-hidden,

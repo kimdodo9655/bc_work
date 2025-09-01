@@ -11,8 +11,8 @@
         정상적으로 서비스를 이용하실 수 없습니다.
       </p>
 
-      <ul class="invalid-access__actions">
-        <li class="notice-block">
+      <div class="invalid-access__actions">
+        <div class="notice-block">
           <p class="notice-block__text">정상적으로 접속했음에도 불구하고 원하는 페이지로 이동하지 않을 경우, 아래 고객센터로 문의해 주시기 바랍니다.</p>
 
           <div class="notice-block__contact-info">
@@ -25,12 +25,10 @@
               월~금 09:00~18:00 (공휴일 제외)
             </p>
           </div>
-        </li>
+        </div>
 
-        <li>
-          <button class="link_btn" @click="goToLogin">로그인 or 메인으로</button>
-        </li>
-      </ul>
+        <button class="btn btn--primary btn--wide-40" @click="goToLogin">로그인 or 메인으로</button>
+      </div>
     </div>
   </div>
 </template>
