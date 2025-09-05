@@ -31,8 +31,8 @@
         </div>
 
         <div class="form-group">
-          <label for="authToken">JWT 토큰 (localStorage.accessToken)</label>
-          <input id="authToken" v-model="authToken" type="text" readonly />
+          <label for="userId">사용자 ID (localStorage.userId)</label>
+          <input id="userId" v-model="userId" type="text" readonly />
         </div>
 
         <button v-if="!isConnected" @click="connect" class="btn btn-primary" :disabled="isConnecting">
@@ -75,7 +75,7 @@ interface Message {
 
 // 반응형 상태
 const wsUrl = ref<string>("ws://localhost:3000");
-const authToken = ref<string>("");
+const userId = ref<string>("");
 const isConnected = ref<boolean>(false);
 const isConnecting = ref<boolean>(false);
 const messages = ref<Message[]>([]);
@@ -98,19 +98,19 @@ const statusIndicatorClass = computed<string>(() => {
   return isConnected.value ? "status-connected" : "status-disconnected";
 });
 
-// localStorage에서 토큰 가져오기
-const loadTokenFromStorage = (): void => {
+// localStorage에서 userId 가져오기
+const loadUserIdFromStorage = (): void => {
   try {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      authToken.value = accessToken;
-      addMessage("system", `localStorage에서 토큰을 로드했습니다`);
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      userId.value = storedUserId;
+      addMessage("system", `localStorage에서 userId를 로드했습니다: ${storedUserId}`);
     } else {
-      authToken.value = "";
-      addMessage("system", "localStorage에서 accessToken을 찾을 수 없습니다");
+      userId.value = "";
+      addMessage("system", "localStorage에서 userId를 찾을 수 없습니다");
     }
   } catch (error) {
-    authToken.value = "";
+    userId.value = "";
     addMessage("error", "localStorage 접근 중 오류가 발생했습니다");
   }
 };
@@ -154,10 +154,10 @@ const formatJson = (data: any): string => {
 const connect = (): void => {
   if (isConnected.value || isConnecting.value) return;
 
-  loadTokenFromStorage();
+  loadUserIdFromStorage();
 
-  if (!authToken.value) {
-    addMessage("error", "localStorage에 accessToken이 없습니다");
+  if (!userId.value) {
+    addMessage("error", "localStorage에 userId가 없습니다");
     return;
   }
 
@@ -165,9 +165,9 @@ const connect = (): void => {
   addMessage("system", `${wsUrl.value}에 연결 시도 중...`);
 
   try {
-    // URL 파라미터로 토큰 전달 (브라우저 WebSocket 제한 우회)
-    const wsUrlWithToken = `${wsUrl.value}?token=${encodeURIComponent(authToken.value)}`;
-    ws = new WebSocket(wsUrlWithToken);
+    // URL 파라미터로 userId 전달
+    const wsUrlWithUserId = `${wsUrl.value}?userId=${encodeURIComponent(userId.value)}`;
+    ws = new WebSocket(wsUrlWithUserId);
 
     ws.onopen = (_event: Event) => {
       isConnected.value = true;
@@ -225,7 +225,7 @@ const clearMessages = (): void => {
 // 라이프사이클 훅
 onMounted(() => {
   addMessage("system", "WebSocket 테스트 클라이언트가 준비되었습니다");
-  loadTokenFromStorage();
+  loadUserIdFromStorage();
 });
 
 onUnmounted(() => {

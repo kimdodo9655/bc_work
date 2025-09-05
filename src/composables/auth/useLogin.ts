@@ -70,7 +70,7 @@ export function useLogin() {
       });
     },
 
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       if (!data) {
         console.warn("로그인 응답 데이터가 null입니다. 이 경우 최초 로그인으로 판단. 이메일 인증 진행");
         return;
@@ -78,13 +78,16 @@ export function useLogin() {
 
       const token = data.accessToken;
       const expiry = data.accessTokenExpiry;
+      const userId = variables.userId; // 요청 DTO에서 userId 가져오기
 
-      // ✅ 저장 및 헤더 설정
+      // ✅ 토큰과 userId 저장 및 헤더 설정
       localStorage.setItem("accessToken", token);
+      localStorage.setItem("userId", userId);
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       authStore.setToken(token, expiry);
 
       console.log("✅ 로그인 성공 - Authorization 토큰 설정 완료");
+      console.log("✅ userId 저장 완료:", userId);
       router.push("/");
     },
 

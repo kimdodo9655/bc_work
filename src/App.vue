@@ -11,7 +11,7 @@
 
   <!-- <ApiTest /> -->
   <!-- <TestForm /> -->
-  <!-- <WebSocketTestPanel /> -->
+  <WebSocketTestPanel />
 </template>
 
 <script setup lang="ts">
@@ -27,7 +27,7 @@ import ToastList from "@/components/ui/ToastList.vue";
 
 // import ApiTest from "@/views/ApiTest.vue";
 // import TestForm from "@/views/TestForm.vue";
-// import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
+import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
 
 const showDevBanner = isDev();
 </script>
