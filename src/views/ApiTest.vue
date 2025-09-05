@@ -33,8 +33,8 @@
     </div>
   </div>
 
-  <TokenCountdown v-if="false" />
-  <ul v-if="false">
+  <TokenCountdown v-if="true" />
+  <ul v-if="true">
     <!-- 로그인 -->
     <li>
       <h4>로그인</h4>

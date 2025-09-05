@@ -3,6 +3,11 @@
 // 라우터 네비게이션 관련 함수들을 모아놓은 컴포저블 (완전판)
 // ==========================================
 import { useRouter } from "vue-router";
+interface MacAddressErrorData {
+  currentMacAddress: string;
+  registeredMacAddress: string;
+  errorMessage: string;
+}
 
 export function useNavigation() {
   const router = useRouter();
@@ -33,8 +38,22 @@ export function useNavigation() {
     router.push("/auth/program-install");
   };
 
-  const goToSiteBlocked = () => {
-    router.push("/auth/site-blocked");
+  // 맥주소 불일치 페이지로 이동 (데이터와 함께)
+  const goToSiteBlocked = (macErrorData?: MacAddressErrorData) => {
+    if (macErrorData) {
+      // 쿼리 파라미터로 데이터 전달
+      router.push({
+        name: "SiteBlocked", // 또는 "/site-blocked"
+        query: {
+          currentMac: macErrorData.currentMacAddress,
+          registeredMac: macErrorData.registeredMacAddress,
+          errorMsg: macErrorData.errorMessage,
+        },
+      });
+    } else {
+      // 기존 방식 (데이터 없이)
+      router.push("/site-blocked");
+    }
   };
 
   const goToEmailVerificationKey = () => {

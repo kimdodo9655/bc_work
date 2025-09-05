@@ -9,17 +9,17 @@
     <div class="auth-card__right">
       <header class="auth-header">
         <h2 class="auth-header__title">사이트 접속 차단</h2>
-        <p class="auth-header__subtitle">해당 시스템은 사전에 등록된 기기만 접속 가능합니다.</p>
+        <p class="auth-header__subtitle">{{ errorMessage || "해당 시스템은 사전에 등록된 기기만 접속 가능합니다." }}</p>
       </header>
 
       <div class="mac-info">
         <div class="mac-info__item">
           <h5 class="mac-info__item-title">접속 기기 Mac Address 정보</h5>
-          <p class="mac-info__item-value mac-info__item-value--error">A1 – B1 – C1 – D1 – E1 – F2</p>
+          <p class="mac-info__item-value mac-info__item-value--error">{{ formattedCurrentMac }}</p>
         </div>
         <div class="mac-info__item">
           <h5 class="mac-info__item-title">Mac Address 등록 정보</h5>
-          <p class="mac-info__item-value">A1 – B1 – C1 – D1 – E1 – F1</p>
+          <p class="mac-info__item-value">{{ formattedRegisteredMac }}</p>
         </div>
       </div>
     </div>
@@ -52,9 +52,48 @@
 <script setup lang="ts">
 import { IconoirProvider } from "@iconoir/vue";
 import { PcWarning } from "@iconoir/vue";
+import { useRoute } from "vue-router";
+import { computed } from "vue";
 import { useNavigation } from "@/composables/useNavigation";
 
 const { goToLogin } = useNavigation();
+const route = useRoute();
+
+// ==========================================
+// 쿼리 파라미터에서 데이터 추출
+// ==========================================
+const currentMacAddress = computed(() => (route.query.currentMac as string) || "알 수 없음");
+const registeredMacAddress = computed(() => (route.query.registeredMac as string) || "등록되지 않음");
+const errorMessage = computed(() => route.query.errorMsg as string);
+
+// ==========================================
+// MAC 주소 포맷팅 함수
+// ==========================================
+function formatMacAddress(mac: string): string {
+  // 기본 포맷이 이미 XX:XX:XX:XX:XX:XX 형태라면 ':'를 ' – '로 변경
+  if (mac.includes(":")) {
+    return mac.replace(/:/g, " – ").toUpperCase();
+  }
+
+  // 하이픈이나 다른 구분자가 있다면 그대로 사용
+  if (mac.includes("-")) {
+    return mac.toUpperCase();
+  }
+
+  // 구분자가 없는 12자리 문자열이라면 2자리씩 나누어 포맷팅
+  if (mac.length === 12 && /^[0-9A-Fa-f]+$/.test(mac)) {
+    return mac.match(/.{2}/g)?.join(" – ").toUpperCase() || mac;
+  }
+
+  // 그 외의 경우 그대로 반환
+  return mac.toUpperCase();
+}
+
+// ==========================================
+// 계산된 속성
+// ==========================================
+const formattedCurrentMac = computed(() => formatMacAddress(currentMacAddress.value));
+const formattedRegisteredMac = computed(() => formatMacAddress(registeredMacAddress.value));
 
 // 아이콘 속성
 const iconProps = {

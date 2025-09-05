@@ -98,56 +98,10 @@ const inputIconProps = {
 };
 
 // ==========================================
-// 상수 & 유틸
-// ==========================================
-
-// ⬇︎ 백엔드가 일반 MAC 포맷을 기대한다면 이 값이 가장 안전합니다.
-const DUMMY_MAC = "00:00:00:00:00:00";
-
-// 간단한 MAC 포맷 유효성 검사 (대소문자 허용)
-function isValidMac(mac: string) {
-  return /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(mac.trim());
-}
-
-// fetch 타임아웃 유틸
-function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 1200) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
-}
-
-// ==========================================
-// ✅ 서버에서 받아온 MAC 저장용
-// ==========================================
-const macAddress = ref<string>("");
-
-// ==========================================
-// 유틸
-// ==========================================
-async function GetMac() {
-  try {
-    const res = await fetchWithTimeout("http://localhost:8102/mac", {}, 1200);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-    const data = await res.json();
-    const mac = (data?.macAddress ?? "").trim();
-
-    // 유효성 검사 통과 시만 사용, 아니면 더미
-    macAddress.value = isValidMac(mac) ? mac : DUMMY_MAC;
-    console.log("맥주소:", macAddress.value, isValidMac(mac) ? "" : "(invalid → dummy)");
-  } catch (err) {
-    console.error("MAC 주소 가져오기 실패:", err);
-    macAddress.value = DUMMY_MAC; // 실패 시 더미로 자동 대체
-    console.log("맥주소: 더미 사용", DUMMY_MAC);
-  }
-}
-
-// ==========================================
 // 생명주기 훅
 // ==========================================
-onMounted(async () => {
+onMounted(() => {
   loadSavedUserData();
-  await GetMac(); // ✅ 마운트 시 MAC 가져오기
 });
 
 // ==========================================
@@ -167,14 +121,10 @@ function handleSubmit() {
   // 아이디 기억하기 처리
   handleRememberUser();
 
-  // 마지막 안전장치: 비어 있거나 이상하면 더미 보정
-  const safeMac = isValidMac(macAddress.value) ? macAddress.value : DUMMY_MAC;
-
-  // 로그인 API 호출
+  // 로그인 API 호출 (맥주소는 컴포저블에서 처리)
   login({
     userId: formData.userId,
     password: formData.password,
-    macAddress: safeMac,
   });
 }
 
