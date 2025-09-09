@@ -58,8 +58,10 @@ export function useLogin() {
     },
 
     onSuccess: (data, variables) => {
+      console.log("data.code", data.code);
+
       if (data.code == "U-S005") {
-        console.warn("로그인 응답 데이터가 null입니다. 이 경우 최초 로그인으로 판단. 이메일 인증 진행");
+        console.warn("로그인 응답 코드가 U-S005입니다. 이 경우 최초 로그인으로 판단. 이메일 인증 진행");
         return;
       }
 
