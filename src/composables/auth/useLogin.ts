@@ -1,23 +1,10 @@
 import { useMutation } from "@tanstack/vue-query";
-import type { LoginReqDto, LoginResDto } from "@/api/types/dto/index";
 import { login } from "@/api/services/index";
 import api from "@/api/client/axios";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { AxiosError } from "axios";
 import { useNavigation } from "@/composables/useNavigation";
-
-type ApiError = {
-  status: number;
-  code: string;
-  message: string;
-  data: {
-    accountMacAddress?: string;
-    [key: string]: unknown;
-  } | null;
-};
-
-type LoginRequest = Omit<LoginReqDto, "macAddress">;
 
 // ==========================================
 // MAC 주소 유틸리티 함수들
@@ -58,8 +45,8 @@ export function useLogin() {
   const authStore = useAuthStore();
   const { goToSiteBlocked } = useNavigation();
 
-  return useMutation<LoginResDto, AxiosError<ApiError>, LoginRequest>({
-    mutationFn: async (loginData: LoginRequest) => {
+  return useMutation<any, AxiosError, any>({
+    mutationFn: async (loginData: any) => {
       // API 실행 시 맥주소 가져오기
       const macAddress = await getMacAddress();
 
@@ -71,7 +58,7 @@ export function useLogin() {
     },
 
     onSuccess: (data, variables) => {
-      if (!data) {
+      if (data.code == "U-S005") {
         console.warn("로그인 응답 데이터가 null입니다. 이 경우 최초 로그인으로 판단. 이메일 인증 진행");
         return;
       }
@@ -91,7 +78,7 @@ export function useLogin() {
       router.push("/");
     },
 
-    onError: async (err) => {
+    onError: async (err: any) => {
       if (err.response?.data?.code === "A005") {
         // 현재 기기의 맥주소 다시 가져오기
         const currentMacAddress = await getMacAddress();

@@ -1,16 +1,15 @@
 import { useMutation } from "@tanstack/vue-query";
 import { logout } from "@/api/services/index";
-import type { LogoutResDto } from "@/api/types/dto/index";
 import { useAuthStore } from "@/stores/auth"; // ✅ Pinia 상태 사용
 
 export function useLogout() {
   const authStore = useAuthStore();
 
-  return useMutation<LogoutResDto, Error, void>({
+  return useMutation<any, Error, void>({
     mutationFn: logout,
 
-    onSuccess: (data) => {
-      console.log("✅ 로그아웃 성공:", data.message);
+    onSuccess: () => {
+      console.log("✅ 로그아웃 성공");
     },
 
     onError: (error) => {

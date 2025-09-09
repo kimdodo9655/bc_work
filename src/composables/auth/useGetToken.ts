@@ -1,13 +1,12 @@
 import { useMutation } from "@tanstack/vue-query";
 import { getToken } from "@/api/services/index";
-import type { TokenResDto } from "@/api/types/dto/index";
 import api from "@/api/client/axios";
 import { useAuthStore } from "@/stores/auth";
 
 export function useGetToken() {
   const authStore = useAuthStore();
 
-  return useMutation<TokenResDto, Error>({
+  return useMutation<any, Error>({
     mutationFn: getToken,
 
     onSuccess: (data) => {

@@ -1,4 +1,7 @@
 import { useUIStore } from "@/stores/ui";
+import { extractAlertInfo } from "@/utils/api";
+import type { AxiosResponse } from "axios";
+import type { ApiResponse } from "@/api/types/dto";
 
 export function useUI() {
   const store = useUIStore();
@@ -17,6 +20,12 @@ export function useUI() {
     // 알럿
     alert: (title: string, message: string, onConfirm?: () => void) => {
       store.showAlert("info", title, message, onConfirm);
+    },
+
+    // API 응답 기반 알럿
+    alertFromApi: <T>(response: AxiosResponse<ApiResponse<T>>, onConfirm?: () => void) => {
+      const alertInfo = extractAlertInfo(response);
+      store.showAlertFromApi(alertInfo, onConfirm);
     },
 
     // 컨펌

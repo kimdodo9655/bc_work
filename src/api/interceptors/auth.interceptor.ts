@@ -14,7 +14,14 @@ export function setupAuthInterceptor() {
 
   // ✅ 응답 인터셉터 (401 처리)
   api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      // API 응답 구조에서 에러 체크
+      if (response.data?.code?.startsWith("E")) {
+        // E로 시작하는 코드는 에러로 처리
+        return Promise.reject(new Error(response.data.message));
+      }
+      return response;
+    },
     (error) => {
       const status = error.response?.status;
       if (status === 401) {

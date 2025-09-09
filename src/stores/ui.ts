@@ -77,6 +77,18 @@ export const useUIStore = defineStore("ui", {
       this.alert.show = false;
     },
 
+    // 알럿 (API 응답 기반)
+    showAlertFromApi(response: { title: string; message: string; isSuccess: boolean }, onConfirm?: () => void) {
+      const type = response.isSuccess ? "success" : "error";
+      this.alert = {
+        show: true,
+        type,
+        title: response.title,
+        message: response.message,
+        onConfirm,
+      };
+    },
+
     // 컨펌
     showConfirm(title: string, message: string, onConfirm?: () => void, onCancel?: () => void) {
       this.confirm = { show: true, title, message, onConfirm, onCancel };
