@@ -26,33 +26,22 @@ export const extractApiMessage = <T>(response: AxiosResponse<ApiResponse<T>>): s
 };
 
 /**
- * API 성공 여부 체크 (코드 기반) - X-S### 형태가 성공
+ * API 성공 여부 체크 (코드 기반)
  */
 export const isApiSuccess = <T>(response: AxiosResponse<ApiResponse<T>>): boolean => {
-  // response.data가 없는 경우는 일단 false (진짜 에러)
-  if (!response.data) {
-    return false;
-  }
-
-  const code = response.data.code;
-  // code가 없는 경우도 성공으로 판단 (data null과 별개로 code도 없을 수 있음)
-  if (!code || typeof code !== "string") {
-    return true; // code가 없으면 성공으로 판단
-  }
-
-  // code가 있는 경우에만 -S 포함 여부로 판단
-  return code.includes("-S");
+  return response.data.code.startsWith("S");
 };
 
 /**
  * 성공한 API 응답에서 안전하게 데이터 추출
+ * null 데이터도 정상적인 응답으로 처리
  */
 export const extractSuccessData = <T>(response: AxiosResponse<ApiResponse<T>>): T | null => {
   if (!isApiSuccess(response)) {
     throw new Error(`API 에러: ${response.data.message}`);
   }
 
-  // data가 null일 수 있음 (정상적인 케이스)
+  // null 데이터도 정상적인 응답으로 반환
   return response.data.data;
 };
 

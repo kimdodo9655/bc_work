@@ -1,3 +1,4 @@
+// src/composables/auth/useLogin.ts
 import { useMutation } from "@tanstack/vue-query";
 import { login } from "@/api/services/index";
 import api from "@/api/client/axios";
@@ -58,26 +59,28 @@ export function useLogin() {
     },
 
     onSuccess: (data, variables) => {
-      console.log("data.code", data.code);
-
-      if (data.code == "U-S005") {
-        console.warn("로그인 응답 코드가 U-S005입니다. 이 경우 최초 로그인으로 판단. 이메일 인증 진행");
+      // 토큰 설정이 필요하지 않은 응답들 (특정 코드로 구분)
+      if (data?.code === "U-S005") {
+        console.warn("최초 로그인으로 판단. 이메일 인증 진행");
         return;
       }
 
-      const token = data.accessToken;
-      const expiry = data.accessTokenExpiry;
-      const userId = variables.userId; // 요청 DTO에서 userId 가져오기
+      // 토큰 정보가 있는 경우에만 설정
+      if (data?.accessToken && data?.accessTokenExpiry) {
+        const token = data.accessToken;
+        const expiry = data.accessTokenExpiry;
+        const userId = variables.userId; // 요청 DTO에서 userId 가져오기
 
-      // ✅ 토큰과 userId 저장 및 헤더 설정
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("userId", userId);
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      authStore.setToken(token, expiry);
+        // ✅ 토큰과 userId 저장 및 헤더 설정
+        localStorage.setItem("accessToken", token);
+        localStorage.setItem("userId", userId);
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        authStore.setToken(token, expiry);
 
-      console.log("✅ 로그인 성공 - Authorization 토큰 설정 완료");
-      console.log("✅ userId 저장 완료:", userId);
-      router.push("/");
+        console.log("✅ 로그인 성공 - Authorization 토큰 설정 완료");
+        console.log("✅ userId 저장 완료:", userId);
+        router.push("/");
+      }
     },
 
     onError: async (err: any) => {

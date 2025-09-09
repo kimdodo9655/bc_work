@@ -9,7 +9,7 @@
   <ConfirmModal />
   <ToastList />
 
-  <!-- <ApiTest /> -->
+  <ApiTest />
   <!-- <TestForm /> -->
   <WebSocketTestPanel />
 </template>
@@ -25,7 +25,7 @@ import AlertModal from "@/components/ui/AlertModal.vue";
 import ConfirmModal from "@/components/ui/ConfirmModal.vue";
 import ToastList from "@/components/ui/ToastList.vue";
 
-// import ApiTest from "@/views/ApiTest.vue";
+import ApiTest from "@/views/ApiTest.vue";
 // import TestForm from "@/views/TestForm.vue";
 import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
 
