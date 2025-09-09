@@ -15,8 +15,8 @@ export function useGetToken() {
       // 예: if (data?.code === "특정코드") { return; }
 
       // 토큰 정보가 있는 경우에만 설정
-      if (data?.accessToken && data?.accessTokenExpiry) {
-        const { accessToken, accessTokenExpiry } = data;
+      if (data.data?.accessToken && data.data?.accessTokenExpiry) {
+        const { accessToken, accessTokenExpiry } = data.data;
 
         // ✅ 저장 및 헤더 설정
         localStorage.setItem("accessToken", accessToken);

@@ -16,9 +16,8 @@ export function setupAuthInterceptor() {
   // ✅ 응답 인터셉터 (401 처리)
   api.interceptors.response.use(
     (response) => {
-      // API 응답 구조에서 에러 체크
-      if (response.data?.code?.startsWith("E")) {
-        // E로 시작하는 코드는 에러로 처리
+      // API 응답 구조에서 에러 체크 (@-E@@@는 에러, @-S@@@는 성공)
+      if (response.data?.code?.includes("-E")) {
         return Promise.reject(new Error(response.data.message));
       }
       return response;

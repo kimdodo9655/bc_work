@@ -27,9 +27,10 @@ export const extractApiMessage = <T>(response: AxiosResponse<ApiResponse<T>>): s
 
 /**
  * API 성공 여부 체크 (코드 기반)
+ * @-S@@@는 성공, @-E@@@는 에러
  */
 export const isApiSuccess = <T>(response: AxiosResponse<ApiResponse<T>>): boolean => {
-  return response.data.code.startsWith("S");
+  return response.data.code.includes("-S");
 };
 
 /**

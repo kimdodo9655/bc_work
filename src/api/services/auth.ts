@@ -5,12 +5,12 @@ import type { ApiResponse } from "@/api/types/dto";
 export const login = async (payload: any) => {
   const response = await api.post<ApiResponse>("/user/login", payload);
 
-  // U-S005 같은 특수 케이스를 위해 response.data를 직접 반환
+  // 기본 응답 체크
   if (!response.data) {
     throw new Error("서버 응답이 올바르지 않습니다.");
   }
 
-  // 에러 코드 체크
+  // 에러 코드 체크 (@-E@@@는 에러)
   if (response.data.code && response.data.code.includes("-E")) {
     throw new Error(response.data.message);
   }
