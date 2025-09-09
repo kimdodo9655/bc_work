@@ -9,9 +9,10 @@
   <ConfirmModal />
   <ToastList />
 
-  <ApiTest />
-  <!-- <TestForm /> -->
-  <WebSocketTestPanel />
+  <!-- <ApiTest />
+  <TestForm />
+  <TestUi />
+  <WebSocketTestPanel /> -->
 </template>
 
 <script setup lang="ts">
@@ -25,9 +26,10 @@ import AlertModal from "@/components/ui/AlertModal.vue";
 import ConfirmModal from "@/components/ui/ConfirmModal.vue";
 import ToastList from "@/components/ui/ToastList.vue";
 
-import ApiTest from "@/views/ApiTest.vue";
-// import TestForm from "@/views/TestForm.vue";
-import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
+// import ApiTest from "@/components/dev/ApiTest.vue";
+// import TestForm from "@/components/dev/TestForm.vue";
+// import TestUi from "@/components/dev/TestUi.vue";
+// import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
 
 const showDevBanner = isDev();
 </script>
