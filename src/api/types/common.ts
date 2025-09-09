@@ -4,6 +4,7 @@
 export interface BasicResDto<T = Record<string, any>> {
   status: number;
   code: string;
+  title: string;
   message: string;
   data: T;
 }
