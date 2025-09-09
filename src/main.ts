@@ -4,14 +4,10 @@ import { VueQueryPlugin, QueryClient } from "@tanstack/vue-query";
 import "@/assets/styles/main.scss";
 import router from "./router";
 import { createPinia } from "pinia";
-import { setupAxiosInterceptors } from "@/api/client/setupAxios";
 import { useAuthStore } from "./stores/auth";
 
 const app = createApp(App);
 const queryClient = new QueryClient();
-
-// ✅ Axios 인터셉터 적용 (개발 모드 체크는 내부에서 함)
-setupAxiosInterceptors();
 
 app.use(createPinia());
 app.use(router);

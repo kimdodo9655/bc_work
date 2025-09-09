@@ -1,7 +1,7 @@
 import { useUIStore } from "@/stores/ui";
-import { extractAlertInfo } from "@/utils/api";
+import { extractAlertInfo } from "@/api/types";
 import type { AxiosResponse } from "axios";
-import type { ApiResponse } from "@/api/types/dto";
+import type { ApiResponse } from "@/api/types";
 
 export function useUI() {
   const store = useUIStore();

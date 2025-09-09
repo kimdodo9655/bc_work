@@ -1,10 +1,9 @@
-// @/api/interceptors/logger.interceptor.ts
-// Axios 콘솔 로거 (개발 참고용)
-
-import api from "@/api/client/axios";
+import axios from "axios";
+import { getApiBaseUrl, isDev } from "@/utils/env";
+import router from "@/router";
 
 // ─────────────────────────────────────────────────────────────
-// Axios 타입 확장
+// Axios 타입 확장 (기존 로거에서 가져옴)
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
     metadata?: {
@@ -15,7 +14,7 @@ declare module "axios" {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 설정/유형
+// 기존 로거 설정/유형 (그대로 유지)
 type LogLevel = "debug" | "info" | "warn" | "error";
 type AuthChecker = () => boolean | Promise<boolean>;
 
@@ -30,7 +29,7 @@ const logConfig = {
 } as const;
 
 // ─────────────────────────────────────────────────────────────
-// 공통 유틸
+// 공통 유틸 (기존 로거에서 가져옴)
 const colors = {
   blue: "color:#2196F3;font-weight:bold;",
   green: "color:#4CAF50;font-weight:bold;",
@@ -117,7 +116,7 @@ const formatRemain = (ms: number) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// 토큰 만료/인증 체크
+// 토큰 만료/인증 체크 (기존 로거에서 가져옴)
 const tokenExpiryGetters = {
   storage: (): number | null => {
     const v = localStorage.getItem("accessTokenExpiry") || localStorage.getItem("tokenExpiry") || localStorage.getItem("expiresAt");
@@ -193,42 +192,30 @@ const getAuthStatus = async () => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// 퍼블릭 API (런타임 구성)
+// Axios 인스턴스 생성
+const api = axios.create({
+  baseURL: getApiBaseUrl(),
+  timeout: 5000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ─────────────────────────────────────────────────────────────
+// 인터셉터 설정
 let reqSeq = 0;
 
-export function setupLoggerInterceptor() {
-  console.log("🔧 API Logger가 활성화되었습니다.");
+// 요청 인터셉터 (기존 로거 + 인증 토큰)
+api.interceptors.request.use((config) => {
+  // 토큰 설정 (기본 기능)
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
 
-  // 런타임 설정/훅 노출
-  Object.assign(window as any, {
-    configureApiLogger: (cfg: Partial<typeof logConfig>) => {
-      Object.assign(logConfig as any, cfg);
-      console.log("📝 API Logger 설정 변경:", logConfig);
-    },
-    setAuthChecker: (fn: AuthChecker) => {
-      isAuthed = fn;
-      console.log("🔑 Auth checker 변경됨");
-    },
-    setExpiryGetter: (fn: () => number | null) => {
-      getExpiry = fn;
-      console.log("⏰ Expiry getter 변경됨");
-    },
-    useAuthChecker: (k: keyof typeof authCheckers) => {
-      if (authCheckers[k]) {
-        isAuthed = authCheckers[k];
-        console.log(`🔑 Auth checker → ${k}`);
-      }
-    },
-    useExpiryGetter: (k: keyof typeof tokenExpiryGetters) => {
-      if (tokenExpiryGetters[k]) {
-        getExpiry = tokenExpiryGetters[k];
-        console.log(`⏰ Expiry getter → ${k}`);
-      }
-    },
-  });
-
-  // 요청 인터셉터
-  api.interceptors.request.use((config) => {
+  // 개발 모드에서만 상세 로깅 (기존 로거)
+  if (isDev()) {
     const reqId = ++reqSeq;
     const start = Date.now();
     config.metadata = { requestId: reqId, startTime: start };
@@ -257,15 +244,23 @@ export function setupLoggerInterceptor() {
 └─────────────────────────────────────────────────`;
       log(msg, colors.blue);
     };
-    // 비동기 인증표시 지원
+
     startLog();
+  }
 
-    return config;
-  });
+  return config;
+});
 
-  // 응답 인터셉터
-  api.interceptors.response.use(
-    async (response) => {
+// 응답 인터셉터 (기존 로거 + 401 처리)
+api.interceptors.response.use(
+  async (response) => {
+    // API 응답 구조에서 에러 체크 (기본 기능)
+    if (response.data?.code?.includes("-E")) {
+      return Promise.reject(new Error(response.data.message));
+    }
+
+    // 개발 모드에서만 상세 로깅 (기존 로거)
+    if (isDev()) {
       const { config, status, data, headers } = response;
       const { requestId, startTime } = config.metadata ?? {};
       const t = nowKR();
@@ -295,14 +290,26 @@ export function setupLoggerInterceptor() {
 │ ${truncate(data, logConfig.maxDataLength).replace(/\n/g, "\n│ ")}
 └─────────────────────────────────────────────────`;
       log(msg, dur > 1000 ? colors.red : colors.green);
-      return response;
-    },
-    async (error) => {
+    }
+
+    return response;
+  },
+  async (error) => {
+    const status = error.response?.status;
+
+    // 401 에러 처리 (기본 기능)
+    if (status === 401) {
+      localStorage.removeItem("accessToken");
+      delete api.defaults.headers.common["Authorization"];
+      router.push("/auth/login");
+    }
+
+    // 개발 모드에서만 상세 로깅 (기존 로거)
+    if (isDev()) {
       const config = error?.config ?? {};
       const { requestId, startTime } = (config as any).metadata ?? {};
       const t = nowKR();
       const dur = Date.now() - (startTime ?? Date.now());
-      const status = error?.response?.status ?? "Network Error";
       const data = error?.response?.data ?? { message: error?.message };
       const auth = logConfig.showAuthStatus ? await getAuthStatus() : null;
 
@@ -319,7 +326,43 @@ export function setupLoggerInterceptor() {
 │ ${truncate(data, logConfig.maxDataLength).replace(/\n/g, "\n│ ")}
 └─────────────────────────────────────────────────`;
       log(msg, colors.red);
-      return Promise.reject(error);
     }
-  );
+
+    return Promise.reject(error);
+  }
+);
+
+// ─────────────────────────────────────────────────────────────
+// 런타임 설정 API (기존 로거에서 가져옴)
+if (isDev()) {
+  console.log("🔧 API Logger가 활성화되었습니다.");
+
+  Object.assign(window as any, {
+    configureApiLogger: (cfg: Partial<typeof logConfig>) => {
+      Object.assign(logConfig as any, cfg);
+      console.log("📝 API Logger 설정 변경:", logConfig);
+    },
+    setAuthChecker: (fn: AuthChecker) => {
+      isAuthed = fn;
+      console.log("🔑 Auth checker 변경됨");
+    },
+    setExpiryGetter: (fn: () => number | null) => {
+      getExpiry = fn;
+      console.log("⏰ Expiry getter 변경됨");
+    },
+    useAuthChecker: (k: keyof typeof authCheckers) => {
+      if (authCheckers[k]) {
+        isAuthed = authCheckers[k];
+        console.log(`🔑 Auth checker → ${k}`);
+      }
+    },
+    useExpiryGetter: (k: keyof typeof tokenExpiryGetters) => {
+      if (tokenExpiryGetters[k]) {
+        getExpiry = tokenExpiryGetters[k];
+        console.log(`⏰ Expiry getter → ${k}`);
+      }
+    },
+  });
 }
+
+export default api;

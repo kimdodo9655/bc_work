@@ -5,9 +5,7 @@
         <div class="modal-header">
           <h3>{{ store.alert.title }}</h3>
           <button @click="handleClose">
-            <IconoirProvider :icon-props="{ color: '#bbbbbb', width: 30, height: 30, 'stroke-width': 2.5 }">
-              <Xmark />
-            </IconoirProvider>
+            <Xmark color="#bbbbbb" :width="30" :height="30" :stroke-width="2.5" />
           </button>
         </div>
         <div class="modal-body">
@@ -22,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { IconoirProvider } from "@iconoir/vue";
 import { Xmark } from "@iconoir/vue";
 import { useUIStore } from "@/stores/ui";
 const store = useUIStore();

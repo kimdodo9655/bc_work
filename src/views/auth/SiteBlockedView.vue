@@ -1,9 +1,7 @@
 <template>
   <div class="auth-card auth-card--split-narrow auth-card--h-350 site-blocked">
     <div class="auth-card__left">
-      <IconoirProvider :icon-props="iconProps">
-        <PcWarning />
-      </IconoirProvider>
+      <PcWarning color="#FFFFFF" :width="130" :height="130" :strokeWidth="1.5" />
     </div>
 
     <div class="auth-card__right">
@@ -50,7 +48,6 @@
 </template>
 
 <script setup lang="ts">
-import { IconoirProvider } from "@iconoir/vue";
 import { PcWarning } from "@iconoir/vue";
 import { useRoute } from "vue-router";
 import { computed } from "vue";
@@ -94,12 +91,4 @@ function formatMacAddress(mac: string): string {
 // ==========================================
 const formattedCurrentMac = computed(() => formatMacAddress(currentMacAddress.value));
 const formattedRegisteredMac = computed(() => formatMacAddress(registeredMacAddress.value));
-
-// 아이콘 속성
-const iconProps = {
-  color: "#FFFFFF",
-  width: 130,
-  height: 130,
-  strokeWidth: 1.5,
-};
 </script>

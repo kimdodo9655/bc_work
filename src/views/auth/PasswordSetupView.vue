@@ -2,9 +2,7 @@
   <div class="auth-card auth-card--split-half auth-card--h-450 password-setup">
     <!-- 좌측 이미지 영역 -->
     <div class="auth-card__left">
-      <IconoirProvider :icon-props="iconProps">
-        <PasswordCursor />
-      </IconoirProvider>
+      <PasswordCursor color="#FFFFFF" :width="180" :height="180" />
     </div>
 
     <!-- 우측 비밀번호 설정 폼 영역 -->
@@ -17,27 +15,25 @@
 
       <!-- 비밀번호 설정 폼 -->
       <form class="auth-form" @submit.prevent="handleSubmit">
-        <IconoirProvider :icon-props="inputIconProps">
-          <!-- 비밀번호 입력 -->
-          <div class="input-group">
-            <Lock class="input-group__icon" />
-            <input v-model="formData.password" class="input-group__field input-group__field--with-toggle" :type="showPassword ? 'text' : 'password'" placeholder="새 비밀번호" autocomplete="new-password" />
-            <button type="button" class="input-group__toggle" @click="togglePasswordVisibility" :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'" tabindex="-1">
-              <Eye v-if="!showPassword" />
-              <EyeClosed v-else />
-            </button>
-          </div>
+        <!-- 비밀번호 입력 -->
+        <div class="input-group">
+          <Lock class="input-group__icon" color="#dddddd" :width="30" :height="30" />
+          <input v-model="formData.password" class="input-group__field input-group__field--with-toggle" :type="showPassword ? 'text' : 'password'" placeholder="새 비밀번호" autocomplete="new-password" />
+          <button type="button" class="input-group__toggle" @click="togglePasswordVisibility" :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'" tabindex="-1">
+            <Eye v-if="!showPassword" color="#dddddd" :width="30" :height="30" />
+            <EyeClosed v-else color="#dddddd" :width="30" :height="30" />
+          </button>
+        </div>
 
-          <!-- 비밀번호 확인 입력 -->
-          <div class="input-group">
-            <Lock class="input-group__icon" />
-            <input v-model="formData.confirmPassword" class="input-group__field input-group__field--with-toggle" :type="showConfirmPassword ? 'text' : 'password'" placeholder="비밀번호 확인" autocomplete="new-password" />
-            <button type="button" class="input-group__toggle" @click="toggleConfirmPasswordVisibility" :aria-label="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'" tabindex="-1">
-              <Eye v-if="!showConfirmPassword" />
-              <EyeClosed v-else />
-            </button>
-          </div>
-        </IconoirProvider>
+        <!-- 비밀번호 확인 입력 -->
+        <div class="input-group">
+          <Lock class="input-group__icon" color="#dddddd" :width="30" :height="30" />
+          <input v-model="formData.confirmPassword" class="input-group__field input-group__field--with-toggle" :type="showConfirmPassword ? 'text' : 'password'" placeholder="비밀번호 확인" autocomplete="new-password" />
+          <button type="button" class="input-group__toggle" @click="toggleConfirmPasswordVisibility" :aria-label="showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'" tabindex="-1">
+            <Eye v-if="!showConfirmPassword" color="#dddddd" :width="30" :height="30" />
+            <EyeClosed v-else color="#dddddd" :width="30" :height="30" />
+          </button>
+        </div>
 
         <!-- 제출 버튼 -->
         <button type="submit" class="btn btn--primary btn--large">비밀번호 설정</button>
@@ -63,7 +59,6 @@
 </template>
 
 <script setup lang="ts">
-import { IconoirProvider } from "@iconoir/vue";
 import { PasswordCursor, Lock, Eye, EyeClosed } from "@iconoir/vue";
 import { ref, reactive } from "vue";
 import { useNavigation } from "@/composables/useNavigation";
@@ -83,23 +78,6 @@ const formData = reactive({
 
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
-
-// ==========================================
-// 계산된 속성
-// ==========================================
-
-// 아이콘 속성
-const iconProps = {
-  color: "#FFFFFF",
-  width: 180,
-  height: 180,
-};
-
-const inputIconProps = {
-  color: "#dddddd",
-  width: 30,
-  height: 30,
-};
 
 // ==========================================
 // 메서드

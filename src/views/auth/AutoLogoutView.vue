@@ -1,9 +1,7 @@
 <template>
   <div class="auth-card auth-card--split-half auth-card--h-450 auto-logout">
     <div class="auth-card__left">
-      <IconoirProvider :icon-props="{ color: '#FFFFFF', width: 180, height: 180, strokeWidth: 1.5 }">
-        <LogOut />
-      </IconoirProvider>
+      <LogOut color="#FFFFFF" :width="180" :height="180" :stroke-width="1.5" />
     </div>
 
     <div class="auth-card__right">
@@ -22,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { IconoirProvider } from "@iconoir/vue";
 import { LogOut } from "@iconoir/vue";
 import { useNavigation } from "@/composables/useNavigation";
 

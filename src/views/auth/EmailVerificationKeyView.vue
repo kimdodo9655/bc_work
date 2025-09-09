@@ -2,15 +2,7 @@
   <div class="auth-card auth-card--split-half auth-card--h-450 email-verification">
     <!-- 좌측 이미지 영역 -->
     <div class="auth-card__left">
-      <IconoirProvider
-        :icon-props="{
-          color: '#FFFFFF',
-          width: 180,
-          height: 180,
-        }"
-      >
-        <SendMail />
-      </IconoirProvider>
+      <SendMail color="#FFFFFF" :width="180" :height="180" />
     </div>
 
     <!-- 우측 이메일 인증 폼 영역 -->
@@ -23,20 +15,11 @@
 
       <!-- 이메일 인증 폼 -->
       <form class="auth-form" @submit.prevent="handleSubmit">
-        <IconoirProvider
-          :icon-props="{
-            color: '#dddddd',
-            width: 30,
-            height: 30,
-            'stroke-width': 2.5,
-          }"
-        >
-          <!-- 보안키 입력 -->
-          <div class="input-group">
-            <Key class="input-group__icon" />
-            <input v-model="formData.authKey" class="input-group__field" type="text" placeholder="이메일 인증 보안키 입력" autocomplete="off" />
-          </div>
-        </IconoirProvider>
+        <!-- 보안키 입력 -->
+        <div class="input-group">
+          <Key class="input-group__icon" color="#dddddd" :width="30" :height="30" :stroke-width="2.5" />
+          <input v-model="formData.authKey" class="input-group__field" type="text" placeholder="이메일 인증 보안키 입력" autocomplete="off" />
+        </div>
 
         <!-- 제출 버튼 -->
         <button type="submit" class="btn btn--primary btn--large">인증하기</button>
@@ -67,7 +50,6 @@
 </template>
 
 <script setup lang="ts">
-import { IconoirProvider } from "@iconoir/vue";
 import { SendMail, Key } from "@iconoir/vue";
 import { reactive } from "vue";
 import { useNavigation } from "@/composables/useNavigation";
@@ -83,25 +65,6 @@ const { goToPasswordSetup } = useNavigation();
 const formData = reactive({
   authKey: "",
 });
-
-// ==========================================
-// 계산된 속성
-// ==========================================
-
-// 아이콘 속성
-const iconProps = {
-  color: "#FFFFFF",
-  width: 180,
-  height: 180,
-  strokeWidth: 3.0,
-};
-
-const inputIconProps = {
-  color: "#dddddd",
-  width: 30,
-  height: 30,
-  strokeWidth: 3.0,
-};
 
 // ==========================================
 // 메서드

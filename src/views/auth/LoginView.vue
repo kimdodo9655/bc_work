@@ -2,9 +2,7 @@
   <div class="auth-card auth-card--split-half auth-card--h-550">
     <!-- 좌측 이미지 영역 -->
     <div class="auth-card__left">
-      <IconoirProvider :icon-props="iconProps">
-        <LogIn />
-      </IconoirProvider>
+      <LogIn color="#FFFFFF" :width="180" :height="180" />
     </div>
 
     <!-- 우측 로그인 폼 영역 -->
@@ -17,37 +15,35 @@
 
       <!-- 로그인 폼 -->
       <form class="auth-form" @submit.prevent="handleSubmit">
-        <IconoirProvider :icon-props="inputIconProps">
-          <!-- 아이디 입력 -->
-          <div class="input-group">
-            <User class="input-group__icon" />
-            <input v-model="formData.userId" class="input-group__field" type="text" placeholder="아이디" autocomplete="username" />
-          </div>
+        <!-- 아이디 입력 -->
+        <div class="input-group">
+          <User class="input-group__icon" color="#dddddd" :width="30" :height="30" :stroke-width="2.0" />
+          <input v-model="formData.userId" class="input-group__field" type="text" placeholder="아이디" autocomplete="username" />
+        </div>
 
-          <!-- 비밀번호 입력 -->
-          <div class="input-group">
-            <Lock class="input-group__icon" />
-            <input v-model="formData.password" class="input-group__field input-group__field--with-toggle" :type="showPassword ? 'text' : 'password'" placeholder="비밀번호" autocomplete="current-password" />
-            <button type="button" class="input-group__toggle" @click="togglePasswordVisibility" :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'" tabindex="-1">
-              <Eye v-if="!showPassword" />
-              <EyeClosed v-else />
+        <!-- 비밀번호 입력 -->
+        <div class="input-group">
+          <Lock class="input-group__icon" color="#dddddd" :width="30" :height="30" :stroke-width="2.0" />
+          <input v-model="formData.password" class="input-group__field input-group__field--with-toggle" :type="showPassword ? 'text' : 'password'" placeholder="비밀번호" autocomplete="current-password" />
+          <button type="button" class="input-group__toggle" @click="togglePasswordVisibility" :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'" tabindex="-1">
+            <Eye v-if="!showPassword" color="#dddddd" :width="30" :height="30" :stroke-width="2.0" />
+            <EyeClosed v-else color="#dddddd" :width="30" :height="30" :stroke-width="2.0" />
+          </button>
+        </div>
+
+        <!-- 폼 하단 메타 정보 -->
+        <div class="form-meta">
+          <div class="form-meta__left">
+            <button type="button" class="checkbox-btn" :class="{ 'checkbox-btn--checked': rememberUser }" @click="toggleRememberUser" :aria-label="rememberUser ? '아이디 기억하기 해제' : '아이디 기억하기'">
+              <CheckSquare v-if="!rememberUser" color="#dddddd" :width="30" :height="30" :stroke-width="2.5" />
+              <CheckSquareSolid v-else color="#dddddd" :width="30" :height="30" :stroke-width="1.5" />
+              아이디 기억하기
             </button>
           </div>
-
-          <!-- 폼 하단 메타 정보 -->
-          <div class="form-meta">
-            <div class="form-meta__left">
-              <button type="button" class="checkbox-btn" :class="{ 'checkbox-btn--checked': rememberUser }" @click="toggleRememberUser" :aria-label="rememberUser ? '아이디 기억하기 해제' : '아이디 기억하기'">
-                <CheckSquare v-if="!rememberUser" />
-                <CheckSquareSolid v-else />
-                아이디 기억하기
-              </button>
-            </div>
-            <div class="form-meta__right">
-              <button type="button" class="link-btn" @click="goToPasswordReset">비밀번호 변경</button>
-            </div>
+          <div class="form-meta__right">
+            <button type="button" class="link-btn" @click="goToPasswordReset">비밀번호 변경</button>
           </div>
-        </IconoirProvider>
+        </div>
 
         <!-- 제출 버튼 -->
         <button type="submit" class="btn btn--primary btn--large">로그인</button>
@@ -57,17 +53,16 @@
 </template>
 
 <script setup lang="ts">
-import { IconoirProvider } from "@iconoir/vue";
 import { LogIn, User, Lock, Eye, EyeClosed, CheckSquare, CheckSquareSolid } from "@iconoir/vue";
 import { ref, onMounted, reactive } from "vue";
-import { useLogin } from "@/composables/auth/useLogin";
+import { useAuth } from "@/composables/useAuth";
 import { useNavigation } from "@/composables/useNavigation";
 
 // ==========================================
 // 컴포저블
 // ==========================================
 const { goToPasswordReset } = useNavigation();
-const { mutate: login } = useLogin();
+const { login } = useAuth();
 
 // ==========================================
 // 반응형 상태
@@ -79,23 +74,6 @@ const formData = reactive({
 
 const showPassword = ref(false);
 const rememberUser = ref(false);
-
-// ==========================================
-// 계산된 속성
-// ==========================================
-
-// 아이콘 속성
-const iconProps = {
-  color: "#FFFFFF",
-  width: 180,
-  height: 180,
-};
-
-const inputIconProps = {
-  color: "#dddddd",
-  width: 30,
-  height: 30,
-};
 
 // ==========================================
 // 생명주기 훅
@@ -122,7 +100,7 @@ function handleSubmit() {
   handleRememberUser();
 
   // 로그인 API 호출 (맥주소는 컴포저블에서 처리)
-  login({
+  login.mutate({
     userId: formData.userId,
     password: formData.password,
   });

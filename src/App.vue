@@ -1,35 +1,40 @@
 <template>
-  <router-view />
-  <AppFooter />
-  <DevBanner v-if="showDevBanner" />
+  <IconoirProvider>
+    <router-view />
+    <AppFooter />
+    <DevBanner v-if="showDevBanner" />
 
-  <!-- UI 컴포넌트들 추가 -->
-  <LoadingOverlay />
-  <AlertModal />
-  <ConfirmModal />
-  <ToastList />
+    <!-- UI 컴포넌트 -->
+    <LoadingOverlay />
+    <AlertModal />
+    <ConfirmModal />
+    <ToastList />
 
-  <!-- <ApiTest />
-  <TestForm />
-  <TestUi />
-  <WebSocketTestPanel /> -->
+    <!-- DEV 컴포넌트 -->
+    <ApiTest />
+    <TestForm />
+    <TestUi />
+    <WebSocketTestPanel />
+  </IconoirProvider>
 </template>
 
 <script setup lang="ts">
+import { IconoirProvider } from "@iconoir/vue";
 import AppFooter from "@/components/layout/AppFooter.vue";
 import DevBanner from "@/components/layout/DevBanner.vue";
 import { isDev } from "@/utils/env";
 
-// UI 컴포넌트들 import
+// UI 컴포넌트 import
 import LoadingOverlay from "@/components/ui/LoadingOverlay.vue";
 import AlertModal from "@/components/ui/AlertModal.vue";
 import ConfirmModal from "@/components/ui/ConfirmModal.vue";
 import ToastList from "@/components/ui/ToastList.vue";
 
-// import ApiTest from "@/components/dev/ApiTest.vue";
-// import TestForm from "@/components/dev/TestForm.vue";
-// import TestUi from "@/components/dev/TestUi.vue";
-// import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
+// DEV 컴포넌트 import
+import ApiTest from "@/components/dev/ApiTest.vue";
+import TestForm from "@/components/dev/TestForm.vue";
+import TestUi from "@/components/dev/TestUi.vue";
+import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
 
 const showDevBanner = isDev();
 </script>
