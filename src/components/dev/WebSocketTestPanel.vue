@@ -21,6 +21,22 @@
         </div>
       </div>
 
+      <!-- API 발송 패널 -->
+      <div class="api-panel">
+        <h3>API 테스트</h3>
+        <div class="form-group">
+          <label for="apiUrl">API URL</label>
+          <input id="apiUrl" v-model="apiUrl" type="text" />
+        </div>
+        <div class="form-group">
+          <label for="targetUserId">대상 사용자 ID</label>
+          <input id="targetUserId" v-model="targetUserId" type="text" placeholder="알람을 받을 사용자 ID" />
+        </div>
+        <button @click="sendApiRequest" class="btn btn-info" :disabled="isSendingApi">
+          {{ isSendingApi ? "전송 중..." : "알람 발송" }}
+        </button>
+      </div>
+
       <!-- 연결 설정 -->
       <div class="connection-panel">
         <h3>연결 설정</h3>
@@ -67,7 +83,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 
 // 타입 정의
 interface Message {
-  type: "received" | "system" | "error";
+  type: "received" | "system" | "error" | "api-success" | "api-error";
   content: string;
   timestamp: string;
   data?: any;
@@ -75,9 +91,12 @@ interface Message {
 
 // 반응형 상태
 const wsUrl = ref<string>("ws://localhost:3000");
+const apiUrl = ref<string>("http://localhost:8100/test/alarm-send");
+const targetUserId = ref<string>("test2");
 const userId = ref<string>("");
 const isConnected = ref<boolean>(false);
 const isConnecting = ref<boolean>(false);
+const isSendingApi = ref<boolean>(false);
 const messages = ref<Message[]>([]);
 const messageCount = ref<number>(0);
 
@@ -112,6 +131,44 @@ const loadUserIdFromStorage = (): void => {
   } catch (error) {
     userId.value = "";
     addMessage("error", "localStorage 접근 중 오류가 발생했습니다");
+  }
+};
+
+// API 요청 보내기
+const sendApiRequest = async (): Promise<void> => {
+  if (isSendingApi.value) return;
+
+  if (!targetUserId.value.trim()) {
+    addMessage("error", "대상 사용자 ID를 입력해주세요");
+    return;
+  }
+
+  isSendingApi.value = true;
+
+  try {
+    addMessage("system", `API 요청 전송 중... (대상: ${targetUserId.value})`);
+
+    const response = await fetch(apiUrl.value, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: targetUserId.value,
+      }),
+    });
+
+    const responseData = await response.json();
+
+    if (response.ok) {
+      addMessage("api-success", `API 요청 성공 (상태: ${response.status})`, responseData);
+    } else {
+      addMessage("api-error", `API 요청 실패 (상태: ${response.status})`, responseData);
+    }
+  } catch (error) {
+    addMessage("api-error", `API 요청 중 오류 발생: ${error instanceof Error ? error.message : "알 수 없는 오류"}`);
+  } finally {
+    isSendingApi.value = false;
   }
 };
 
@@ -325,6 +382,7 @@ onUnmounted(() => {
   }
 }
 
+.api-panel,
 .connection-panel,
 .message-panel {
   background: #f8f9fa;
@@ -333,6 +391,7 @@ onUnmounted(() => {
   margin-bottom: 30px;
 }
 
+.api-panel h3,
 .connection-panel h3,
 .message-panel h3 {
   margin-bottom: 20px;
@@ -406,6 +465,16 @@ onUnmounted(() => {
   transform: translateY(-2px);
 }
 
+.btn-info {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover:not(:disabled) {
+  background: #138496;
+  transform: translateY(-2px);
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -442,6 +511,16 @@ onUnmounted(() => {
 }
 
 .message-error {
+  background: rgba(220, 53, 69, 0.1);
+  border-left-color: #dc3545;
+}
+
+.message-api-success {
+  background: rgba(23, 162, 184, 0.1);
+  border-left-color: #17a2b8;
+}
+
+.message-api-error {
   background: rgba(220, 53, 69, 0.1);
   border-left-color: #dc3545;
 }

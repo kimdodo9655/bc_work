@@ -1,5 +1,4 @@
 <template>
-  <TestPdf />
   <IconoirProvider>
     <router-view />
     <AppFooter />
@@ -12,10 +11,11 @@
     <ToastList />
 
     <!-- DEV 컴포넌트 -->
-    <ApiTest />
-    <TestForm />
-    <TestUi />
-    <WebSocketTestPanel />
+    <!-- <ApiTest /> -->
+    <!-- <TestForm /> -->
+    <!-- <TestUi /> -->
+    <!-- <WebSocketTestPanel /> -->
+    <!-- <TestPdf /> -->
   </IconoirProvider>
 </template>
 
@@ -32,11 +32,11 @@ import ConfirmModal from "@/components/ui/ConfirmModal.vue";
 import ToastList from "@/components/ui/ToastList.vue";
 
 // DEV 컴포넌트 import
-import TestPdf from "@/components/dev/TestPdf.vue";
-import ApiTest from "@/components/dev/ApiTest.vue";
-import TestForm from "@/components/dev/TestForm.vue";
-import TestUi from "@/components/dev/TestUi.vue";
-import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
+// import TestPdf from "@/components/dev/TestPdf.vue";
+// import ApiTest from "@/components/dev/ApiTest.vue";
+// import TestForm from "@/components/dev/TestForm.vue";
+// import TestUi from "@/components/dev/TestUi.vue";
+// import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";
 
 const showDevBanner = isDev();
 </script>
