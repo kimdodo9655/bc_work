@@ -11,7 +11,7 @@
     <ToastList />
 
     <!-- DEV 컴포넌트 -->
-    <!-- <ApiTest /> -->
+    <ApiTest />
     <!-- <TestForm /> -->
     <!-- <TestUi /> -->
     <!-- <WebSocketTestPanel /> -->
@@ -33,7 +33,7 @@ import ToastList from "@/components/ui/ToastList.vue";
 
 // DEV 컴포넌트 import
 import TestPdf from "@/components/dev/TestPdf.vue";
-// import ApiTest from "@/components/dev/ApiTest.vue";
+import ApiTest from "@/components/dev/ApiTest.vue";
 // import TestForm from "@/components/dev/TestForm.vue";
 // import TestUi from "@/components/dev/TestUi.vue";
 // import WebSocketTestPanel from "@/components/dev/WebSocketTestPanel.vue";

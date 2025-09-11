@@ -750,4 +750,8 @@ onBeforeUnmount(() => {
     width: 60px;
   }
 }
+
+:deep(.pdf-vue3-scroller) {
+  max-height: unset;
+}
 </style>

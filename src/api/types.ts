@@ -26,8 +26,12 @@ export interface AlertInfo {
   isSuccess: boolean;
 }
 
-export const extractAlertInfo = <T>(response: { data: ApiResponse<T> }): AlertInfo => ({
-  title: response.data.title,
-  message: response.data.message,
-  isSuccess: response.data.code.includes("-S"),
-});
+export const extractAlertInfo = <T>(response: { data: ApiResponse<T> }): AlertInfo => {
+  const { title, message, code } = response.data;
+  const codeStr = typeof code === "string" ? code : "";
+  return {
+    title: title || "",
+    message: message || "",
+    isSuccess: codeStr.includes("-S"),
+  };
+};
