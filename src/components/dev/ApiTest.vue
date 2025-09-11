@@ -60,7 +60,6 @@
 </template>
 
 <script setup lang="ts">
-import { LogIn } from "@iconoir/vue";
 import { ref } from "vue";
 
 import TokenCountdown from "@/components/TokenCountdown.vue";

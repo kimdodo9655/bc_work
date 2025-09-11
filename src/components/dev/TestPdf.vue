@@ -2,32 +2,72 @@
   <div class="pdf-shell" :class="{ 'no-thumbs': !showThumbs }">
     <header class="pdf-header">
       <div class="left">
-        <button class="icon-btn" @click="toggleThumbs">☰</button>
+        <button class="icon-btn" @click="toggleThumbs" title="썸네일 토글">☰</button>
         <strong class="title">{{ titleToShow }}</strong>
-        <span class="muted">{{ page }} / {{ totalPages || "—" }}</span>
+        <span class="muted">{{ currentPage }} / {{ totalPages || "—" }}</span>
       </div>
       <div class="right">
-        <button class="icon-btn" @click="zoomOut">−</button>
-        <button class="icon-btn" @click="zoomIn">＋</button>
-        <button class="icon-btn" @click="goPrev" :disabled="page <= 1">⟨</button>
-        <button class="icon-btn" @click="goNext" :disabled="totalPages ? page >= totalPages : false">⟩</button>
-        <button class="icon-btn" @click="downloadPdf">💾</button>
-        <button class="icon-btn" @click="printPdf">🖨️</button>
+        <button class="icon-btn" @click="zoomOut" :disabled="isMinZoom" title="축소">−</button>
+        <button class="icon-btn" @click="zoomIn" :disabled="isMaxZoom" title="확대">＋</button>
+        <button class="icon-btn" @click="goPrev" :disabled="currentPage <= 1" title="이전 페이지">⟨</button>
+        <button class="icon-btn" @click="goNext" :disabled="!totalPages || currentPage >= totalPages" title="다음 페이지">⟩</button>
+        <button class="icon-btn" @click="downloadPdf" :disabled="!src" title="다운로드">💾</button>
+        <button class="icon-btn" @click="printPdf" :disabled="!src" title="인쇄">🖨️</button>
       </div>
     </header>
 
     <div class="pdf-body">
+      <!-- 썸네일 패널 -->
       <aside class="pdf-thumbs" v-show="showThumbs" ref="thumbsRef">
-        <PDF class="thumbs-pdf" :src="src" :pdf-width="thumbWidthPx + 'px'" :row-gap="8" :show-progress="false" :show-page-tooltip="false" :show-back-to-top-btn="false" />
+        <div class="thumbs-header">
+          <span>페이지 미리보기</span>
+          <span class="page-count" v-if="totalPages">({{ totalPages }}페이지)</span>
+        </div>
+        <div class="thumbs-container">
+          <!-- 썸네일 - 메인 PDF 로딩 완료 후 표시 -->
+          <div v-if="!src" class="thumb-empty">
+            <p>PDF를 로드하세요</p>
+          </div>
+          <div v-else-if="!showThumbsPdf" class="thumb-waiting">
+            <div class="mini-spinner"></div>
+            <p>썸네일 준비 중...</p>
+          </div>
+          <div v-else class="thumbs-pdf-container">
+            <PDF :src="src" :pdf-width="thumbWidthPx + 'px'" :row-gap="8" :show-progress="false" :show-page-tooltip="false" :show-back-to-top-btn="false" />
+          </div>
+        </div>
       </aside>
 
+      <!-- 메인 뷰어 -->
       <main class="pdf-view" ref="mainRef">
-        <PDF class="main-pdf" :src="src" :pdf-width="mainWidthPx + 'px'" :row-gap="16" :show-progress="true" :progress-color="progressColor" :show-page-tooltip="true" :show-back-to-top-btn="true" :scroll-threshold="200" />
-        <div class="page-bar">
-          <button class="mini" @click="goPrev" :disabled="page <= 1">‹</button>
-          <input class="page-input" type="number" v-model.number="page" :min="1" :max="totalPages || 1" @change="jumpToInputPage" />
+        <!-- 업로드 화면 -->
+        <div v-if="!src" class="upload-screen">
+          <div class="upload-content">
+            <div class="upload-icon">📄</div>
+            <h3>PDF 뷰어</h3>
+            <p>PDF 파일을 선택하거나 샘플을 로드하세요</p>
+            <div class="upload-buttons">
+              <input type="file" accept=".pdf" @change="handleFileUpload" ref="fileInputRef" style="display: none" />
+              <button @click="openFileDialog" class="btn btn-primary">파일 선택</button>
+              <button @click="loadSample" class="btn btn-secondary">샘플 로드</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 메인 PDF -->
+        <div v-else class="main-content">
+          <PDF :src="src" :pdf-width="mainWidthPx + 'px'" :row-gap="16" :show-progress="true" :progress-color="progressColor" :show-page-tooltip="true" :show-back-to-top-btn="true" :scroll-threshold="200" />
+        </div>
+
+        <!-- 페이지 바 -->
+        <div class="page-bar" v-if="src">
+          <button class="mini" @click="goPrev" :disabled="currentPage <= 1" title="이전">‹</button>
+          <input class="page-input" type="number" v-model.number="pageInput" :min="1" :max="totalPages || 1" @keyup.enter="jumpToPage" @blur="jumpToPage" />
           <span>/ {{ totalPages || "—" }}</span>
-          <button class="mini" @click="goNext" :disabled="totalPages ? page >= totalPages : false">›</button>
+          <button class="mini" @click="goNext" :disabled="!totalPages || currentPage >= totalPages" title="다음">›</button>
+          <div class="zoom-info">
+            <span>{{ Math.round((mainWidthPx / 800) * 100) }}%</span>
+          </div>
         </div>
       </main>
     </div>
@@ -35,314 +75,679 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
 import PDF from "pdf-vue3";
 
-const src = ref("/public/pdf/pdf.pdf");
-const docTitle = ref<string | null>(null);
-
-const page = ref(1);
-const totalPages = ref<number | null>(null);
+// 상태 관리
+const src = ref<string>("");
+const docTitle = ref<string>("");
+const currentPage = ref(1);
+const pageInput = ref(1);
+const totalPages = ref<number>(0);
 const showThumbs = ref(true);
-const mainWidthPx = ref(820);
+const showThumbsPdf = ref(false);
+const mainWidthPx = ref(800);
 const thumbWidthPx = ref(120);
-const progressColor = ref("#9aa7b1");
+const progressColor = ref("#007bff");
 
+// refs
 const mainRef = ref<HTMLElement | null>(null);
 const thumbsRef = ref<HTMLElement | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
 
+// computed
 const titleToShow = computed(() => {
   if (docTitle.value) return docTitle.value;
+  if (!src.value) return "PDF 뷰어";
   try {
-    const u = new URL(src.value, window.location.href);
-    return decodeURIComponent(u.pathname.split("/").pop() || "document.pdf");
+    const url = new URL(src.value, window.location.href);
+    return decodeURIComponent(url.pathname.split("/").pop() || "document.pdf");
   } catch {
     return "document.pdf";
   }
 });
 
-let mainMo: MutationObserver | null = null;
-let thumbsMo: MutationObserver | null = null;
-let resizeObs: ResizeObserver | null = null;
-let pendingScrollTo: number | null = null;
+const isMinZoom = computed(() => mainWidthPx.value <= 400);
+const isMaxZoom = computed(() => {
+  const maxWidth = (mainRef.value?.clientWidth || 1000) - 50;
+  return mainWidthPx.value >= maxWidth;
+});
 
-function updateTotalPages() {
-  const mainCount = mainRef.value ? mainRef.value.querySelectorAll("canvas").length : 0;
-  const thumbsCount = thumbsRef.value ? thumbsRef.value.querySelectorAll("canvas").length : 0;
-  const max = Math.max(mainCount, thumbsCount);
-  totalPages.value = max > 0 ? max : totalPages.value;
+// 관찰자와 타이머
+let mutationObserver: MutationObserver | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let pageUpdateTimer: number | null = null;
+let thumbsTimer: number | null = null;
+
+// 감시자
+watch(currentPage, (newPage) => {
+  pageInput.value = newPage;
+});
+
+watch(src, (newSrc) => {
+  if (newSrc) {
+    resetState();
+    startPageDetection();
+    // 3초 후 썸네일 표시
+    thumbsTimer = setTimeout(() => {
+      showThumbsPdf.value = true;
+    }, 3000);
+  } else {
+    resetState();
+  }
+});
+
+// 메서드
+function resetState() {
+  currentPage.value = 1;
+  pageInput.value = 1;
+  totalPages.value = 0;
+  showThumbsPdf.value = false;
+
+  if (thumbsTimer) {
+    clearTimeout(thumbsTimer);
+    thumbsTimer = null;
+  }
 }
 
-function currentPageFromScroll() {
-  const host = mainRef.value;
-  if (!host) return;
-  const list = Array.from(host.querySelectorAll("canvas")) as HTMLCanvasElement[];
-  if (list.length === 0) return;
-  const top = host.scrollTop;
-  const vh = host.clientHeight;
-  let best = 1;
-  let bestDist = Infinity;
-  list.forEach((cv, idx) => {
-    const rectTop = cv.offsetTop - top;
-    const centerDist = Math.abs(rectTop + cv.offsetHeight / 2 - vh / 2);
-    if (centerDist < bestDist) {
-      bestDist = centerDist;
-      best = idx + 1;
+function startPageDetection() {
+  if (!mainRef.value) return;
+
+  // DOM 변화 감지하여 페이지 수 업데이트
+  mutationObserver = new MutationObserver(() => {
+    updatePageInfo();
+  });
+
+  mutationObserver.observe(mainRef.value, {
+    childList: true,
+    subtree: true,
+  });
+
+  // 스크롤 이벤트로 현재 페이지 감지
+  mainRef.value.addEventListener("scroll", handleScroll, { passive: true });
+
+  // 초기 페이지 정보 업데이트
+  setTimeout(updatePageInfo, 1000);
+}
+
+function updatePageInfo() {
+  if (!mainRef.value) return;
+
+  const canvases = mainRef.value.querySelectorAll("canvas");
+  if (canvases.length > 0 && canvases.length !== totalPages.value) {
+    totalPages.value = canvases.length;
+    console.log("총 페이지 수 업데이트:", canvases.length);
+  }
+}
+
+function handleScroll() {
+  if (pageUpdateTimer) {
+    clearTimeout(pageUpdateTimer);
+  }
+
+  pageUpdateTimer = setTimeout(() => {
+    updateCurrentPageFromScroll();
+  }, 100);
+}
+
+function updateCurrentPageFromScroll() {
+  if (!mainRef.value) return;
+
+  const canvases = Array.from(mainRef.value.querySelectorAll("canvas"));
+  if (canvases.length === 0) return;
+
+  const viewHeight = mainRef.value.clientHeight;
+
+  let bestPage = 1;
+  let bestDistance = Infinity;
+
+  canvases.forEach((canvas, index) => {
+    const rect = canvas.getBoundingClientRect();
+    const mainRect = mainRef.value!.getBoundingClientRect();
+    const relativeTop = rect.top - mainRect.top;
+    const centerDistance = Math.abs(relativeTop + rect.height / 2 - viewHeight / 2);
+
+    if (centerDistance < bestDistance) {
+      bestDistance = centerDistance;
+      bestPage = index + 1;
     }
   });
-  page.value = best;
-}
 
-function scrollToMainPage(n: number) {
-  const host = mainRef.value;
-  if (!host) return;
-  const cv = host.querySelectorAll("canvas")[n - 1] as HTMLCanvasElement | undefined;
-  if (cv) {
-    cv.scrollIntoView({ behavior: "smooth", block: "start" });
-    page.value = n;
-    pendingScrollTo = null;
-    return;
+  if (bestPage !== currentPage.value && bestPage >= 1 && bestPage <= totalPages.value) {
+    currentPage.value = bestPage;
   }
-  pendingScrollTo = n;
 }
 
-function onThumbsClick(ev: Event) {
-  const host = thumbsRef.value;
-  const mainHost = mainRef.value;
-  if (!host || !mainHost) return;
-  const canvas = (ev.target as HTMLElement)?.closest?.("canvas");
-  if (!canvas) return;
-  const list = Array.from(host.querySelectorAll("canvas"));
-  const idx = list.indexOf(canvas as HTMLCanvasElement);
-  if (idx >= 0) scrollToMainPage(idx + 1);
+function scrollToPage(pageNum: number) {
+  if (!mainRef.value) return;
+
+  const canvases = mainRef.value.querySelectorAll("canvas");
+  const targetCanvas = canvases[pageNum - 1] as HTMLCanvasElement;
+
+  if (targetCanvas) {
+    targetCanvas.scrollIntoView({ behavior: "smooth", block: "start" });
+    currentPage.value = pageNum;
+  }
 }
 
 function goPrev() {
-  const target = Math.max(1, page.value - 1);
-  scrollToMainPage(target);
+  if (currentPage.value > 1) {
+    scrollToPage(currentPage.value - 1);
+  }
 }
+
 function goNext() {
-  const max = totalPages.value || page.value + 1;
-  const target = Math.min(max, page.value + 1);
-  scrollToMainPage(target);
+  if (totalPages.value && currentPage.value < totalPages.value) {
+    scrollToPage(currentPage.value + 1);
+  }
 }
-function jumpToInputPage() {
-  const max = totalPages.value || page.value;
-  const n = Math.max(1, Math.min(max, page.value));
-  scrollToMainPage(n);
+
+function jumpToPage() {
+  const targetPage = Math.max(1, Math.min(totalPages.value || 1, pageInput.value));
+  pageInput.value = targetPage;
+  scrollToPage(targetPage);
 }
 
 function zoomIn() {
-  mainWidthPx.value = Math.min(mainWidthPx.value + 100, (mainRef.value?.clientWidth || 900) - 24);
+  if (!isMaxZoom.value) {
+    mainWidthPx.value += 100;
+  }
 }
+
 function zoomOut() {
-  mainWidthPx.value = Math.max(200, mainWidthPx.value - 100);
+  if (!isMinZoom.value) {
+    mainWidthPx.value -= 100;
+  }
 }
+
 async function toggleThumbs() {
   showThumbs.value = !showThumbs.value;
   await nextTick();
-  recalcMainWidth();
+
+  // 썸네일 토글 시 메인 뷰어 크기 재조정
+  if (mainRef.value && typeof ResizeObserver !== "undefined") {
+    const maxWidth = mainRef.value.clientWidth - 50;
+    if (mainWidthPx.value > maxWidth) {
+      mainWidthPx.value = Math.max(400, maxWidth);
+    }
+  }
 }
 
-function recalcMainWidth() {
-  const host = mainRef.value;
-  if (!host) return;
-  const max = Math.max(200, host.clientWidth - 24);
-  if (mainWidthPx.value > max) mainWidthPx.value = max;
+// 파일 처리
+function handleFileUpload(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (file && file.type === "application/pdf") {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (result instanceof ArrayBuffer) {
+        const blob = new Blob([new Uint8Array(result)], { type: "application/pdf" });
+        src.value = URL.createObjectURL(blob);
+        docTitle.value = file.name.replace(/\.[^/.]+$/, "");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    alert("PDF 파일만 선택할 수 있습니다.");
+  }
 }
 
-async function fetchPdfBlob(): Promise<Blob> {
-  const res = await fetch(src.value);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.blob();
+function openFileDialog() {
+  fileInputRef.value?.click();
 }
+
+function loadSample() {
+  src.value = "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf";
+  docTitle.value = "TraceMoneky 샘플 문서";
+}
+
+// 다운로드/인쇄
 async function downloadPdf() {
-  const blob = await fetchPdfBlob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = titleToShow.value.endsWith(".pdf") ? titleToShow.value : `${titleToShow.value}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 500);
-}
-async function printPdf() {
-  const blob = await fetchPdfBlob();
-  const url = URL.createObjectURL(blob);
-  const iframe = document.createElement("iframe");
-  Object.assign(iframe.style, { position: "fixed", width: "0", height: "0", border: "0", right: "0", bottom: "0" });
-  iframe.src = url;
-  document.body.appendChild(iframe);
-  const cleanup = () => {
+  if (!src.value) return;
+
+  try {
+    const response = await fetch(src.value);
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = titleToShow.value.endsWith(".pdf") ? titleToShow.value : `${titleToShow.value}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    iframe.remove();
-    window.removeEventListener("afterprint", cleanup);
-  };
-  window.addEventListener("afterprint", cleanup);
-  iframe.onload = () =>
-    setTimeout(() => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-      setTimeout(cleanup, 4000);
-    }, 150);
+  } catch (error) {
+    console.error("다운로드 실패:", error);
+    alert("다운로드에 실패했습니다.");
+  }
 }
 
+async function printPdf() {
+  if (!src.value) return;
+
+  try {
+    // 새 창에서 PDF 열기
+    const printWindow = window.open(src.value, "_blank");
+    if (printWindow) {
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 1000);
+      };
+    }
+  } catch (error) {
+    console.error("인쇄 실패:", error);
+    alert("인쇄에 실패했습니다.");
+  }
+}
+
+// 썸네일 클릭 이벤트
+function handleThumbsClick(event: Event) {
+  if (!thumbsRef.value) return;
+
+  const canvas = (event.target as HTMLElement).closest("canvas");
+  if (canvas) {
+    const canvases = Array.from(thumbsRef.value.querySelectorAll("canvas"));
+    const index = canvases.indexOf(canvas);
+    if (index >= 0) {
+      scrollToPage(index + 1);
+    }
+  }
+}
+
+// 라이프사이클
 onMounted(() => {
   if (thumbsRef.value) {
-    thumbsRef.value.addEventListener("click", onThumbsClick);
-    thumbsMo = new MutationObserver(() => updateTotalPages());
-    thumbsMo.observe(thumbsRef.value, { childList: true, subtree: true });
+    thumbsRef.value.addEventListener("click", handleThumbsClick);
   }
-  if (mainRef.value) {
-    mainRef.value.addEventListener("scroll", currentPageFromScroll, { passive: true });
-    mainMo = new MutationObserver(() => {
-      updateTotalPages();
-      if (pendingScrollTo != null) scrollToMainPage(pendingScrollTo);
+
+  if (typeof ResizeObserver !== "undefined" && mainRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      const maxWidth = mainRef.value!.clientWidth - 50;
+      if (mainWidthPx.value > maxWidth) {
+        mainWidthPx.value = Math.max(400, maxWidth);
+      }
     });
-    mainMo.observe(mainRef.value, { childList: true, subtree: true });
+    resizeObserver.observe(mainRef.value);
   }
-  resizeObs = new ResizeObserver(recalcMainWidth);
-  mainRef.value && resizeObs.observe(mainRef.value);
-  nextTick(updateTotalPages);
 });
 
 onBeforeUnmount(() => {
-  thumbsRef.value && thumbsRef.value.removeEventListener("click", onThumbsClick);
-  mainRef.value && mainRef.value.removeEventListener("scroll", currentPageFromScroll);
-  thumbsMo?.disconnect();
-  thumbsMo = null;
-  mainMo?.disconnect();
-  mainMo = null;
-  resizeObs?.disconnect();
-  resizeObs = null;
+  if (mutationObserver) {
+    mutationObserver.disconnect();
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+  if (pageUpdateTimer) {
+    clearTimeout(pageUpdateTimer);
+  }
+  if (thumbsTimer) {
+    clearTimeout(thumbsTimer);
+  }
+  if (thumbsRef.value) {
+    thumbsRef.value.removeEventListener("click", handleThumbsClick);
+  }
+  if (mainRef.value) {
+    mainRef.value.removeEventListener("scroll", handleScroll);
+  }
 });
 </script>
 
 <style scoped>
 .pdf-shell {
-  width: 1400px;
-  height: 1000px;
+  width: 100%;
+  height: 100vh;
   display: grid;
-  grid-template-rows: 44px 1fr;
-  grid-template-columns: 180px 1fr;
-  background: #1f2326;
-  color: #e6e8ea;
-  border: 1px solid #333a40;
-  box-sizing: border-box;
+  grid-template-rows: 50px 1fr;
+  grid-template-columns: 220px 1fr;
+  background: #1a1d21;
+  color: #e8eaed;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  border: 1px solid #2d3748;
 }
+
 .pdf-shell.no-thumbs {
   grid-template-columns: 0 1fr;
 }
+
 .pdf-header {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
-  background: #5f666d;
-  color: #fff;
-  font-size: 13px;
+  padding: 0 16px;
+  background: #2d3748;
+  border-bottom: 1px solid #4a5568;
 }
+
 .pdf-header .left,
 .pdf-header .right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
+
 .title {
-  max-width: 420px;
+  max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
+  color: #f7fafc;
 }
+
 .muted {
-  opacity: 0.85;
+  color: #a0aec0;
+  font-size: 14px;
 }
+
 .icon-btn {
-  border: none;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  padding: 5px 9px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f7fafc;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
 }
+
+.icon-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 .icon-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
+  opacity: 0.4;
+  cursor: not-allowed;
 }
+
 .pdf-body {
   grid-column: 1 / -1;
   display: contents;
 }
+
 .pdf-thumbs {
   grid-row: 2;
   grid-column: 1;
-  overflow: auto;
-  padding: 8px;
-  background: #2a2f34;
-  border-right: 1px solid #3a4147;
+  background: #2a2f3a;
+  border-right: 1px solid #4a5568;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-.pdf-thumbs canvas {
+
+.thumbs-header {
+  padding: 12px 16px;
+  background: #2d3748;
+  border-bottom: 1px solid #4a5568;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-count {
+  color: #a0aec0;
+  font-weight: normal;
+}
+
+.thumbs-container {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+
+.thumb-empty,
+.thumb-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 150px;
+  color: #718096;
+  font-size: 13px;
+  text-align: center;
+}
+
+.mini-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #4a5568;
+  border-top: 2px solid #4299e1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.thumbs-pdf-container :deep(canvas) {
   display: block;
   width: 100% !important;
   height: auto !important;
-  margin: 0 auto 8px;
+  margin: 0 auto 10px;
   background: #fff;
-  box-shadow: 0 0 0 1px #3a4147, 0 2px 6px rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
+  transition: transform 0.2s;
 }
+
+.thumbs-pdf-container :deep(canvas:hover) {
+  transform: scale(1.03);
+}
+
 .pdf-view {
   grid-row: 2;
   grid-column: 2;
-  overflow: hidden;
-  background: #1f2326;
+  background: #1a1d21;
+  overflow: auto;
+  position: relative;
 }
-.main-pdf {
-  display: block;
-  margin: 0 auto;
+
+.upload-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
-.pdf-view canvas {
+
+.upload-content {
+  text-align: center;
+  padding: 40px;
+  max-width: 500px;
+}
+
+.upload-icon {
+  font-size: 72px;
+  margin-bottom: 24px;
+}
+
+.upload-content h3 {
+  font-size: 28px;
+  margin: 0 0 12px 0;
+  color: #f7fafc;
+}
+
+.upload-content p {
+  font-size: 16px;
+  color: #a0aec0;
+  margin: 0 0 32px 0;
+}
+
+.upload-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #4299e1;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #718096;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4a5568;
+  transform: translateY(-1px);
+}
+
+.main-content {
+  padding: 20px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.main-content :deep(canvas) {
   display: block;
-  margin: 0 auto 16px;
+  margin: 0 auto 20px;
   background: #fff;
-  box-shadow: 0 0 0 1px #3a4147, 0 8px 20px rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   max-width: 100%;
   height: auto;
 }
+
 .page-bar {
   position: sticky;
-  bottom: 8px;
+  bottom: 20px;
   left: 0;
   right: 0;
   width: fit-content;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid #3a4147;
-  border-radius: 12px;
-  padding: 6px 10px;
-  backdrop-filter: blur(6px);
+  gap: 12px;
+  background: rgba(45, 55, 72, 0.95);
+  border: 1px solid #4a5568;
+  border-radius: 25px;
+  padding: 10px 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
+
 .page-input {
-  width: 64px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  border: 1px solid #3a4147;
-  background: #23282d;
-  color: #e6e8ea;
+  width: 70px;
+  padding: 6px 10px;
+  border: 1px solid #4a5568;
+  border-radius: 6px;
+  background: #2d3748;
+  color: #f7fafc;
   text-align: center;
+  font-size: 14px;
 }
+
+.page-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
 .mini {
-  padding: 2px 8px;
-  border-radius: 8px;
-  border: 1px solid #3a4147;
-  background: #2b3036;
-  color: #e6e8ea;
+  padding: 6px 12px;
+  background: #4a5568;
+  border: 1px solid #718096;
+  color: #f7fafc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
 }
+
+.mini:hover:not(:disabled) {
+  background: #718096;
+}
+
 .mini:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.zoom-info {
+  color: #a0aec0;
+  font-size: 12px;
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 1px solid #4a5568;
+}
+
+/* 스크롤바 스타일 */
+.pdf-view::-webkit-scrollbar,
+.thumbs-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdf-view::-webkit-scrollbar-track,
+.thumbs-container::-webkit-scrollbar-track {
+  background: #2d3748;
+}
+
+.pdf-view::-webkit-scrollbar-thumb,
+.thumbs-container::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 4px;
+}
+
+.pdf-view::-webkit-scrollbar-thumb:hover,
+.thumbs-container::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .pdf-shell {
+    grid-template-columns: 0 1fr;
+  }
+
+  .upload-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 250px;
+  }
+
+  .page-bar {
+    padding: 8px 16px;
+    gap: 8px;
+  }
+
+  .page-input {
+    width: 60px;
+  }
 }
 </style>

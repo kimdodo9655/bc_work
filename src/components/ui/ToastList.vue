@@ -20,10 +20,12 @@ const store = useUIStore();
 <style scoped>
 .toast-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  left: 50%;
+  bottom: 200px;
   z-index: 10001;
   max-width: 350px;
+
+  transform: translateX(-50%);
 }
 
 .toast-item {

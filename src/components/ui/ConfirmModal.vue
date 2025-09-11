@@ -106,6 +106,7 @@ const handleCancel = () => {
   margin: 10px 0 0;
   color: #4d9294;
   line-height: 1.7;
+  font-weight: 600;
 }
 
 .modal-footer {
