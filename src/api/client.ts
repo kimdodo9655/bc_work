@@ -2,8 +2,9 @@ import axios from "axios";
 import { getApiBaseUrl, isDev } from "@/utils/env";
 import router from "@/router";
 
-// ─────────────────────────────────────────────────────────────
-// Axios 타입 확장 (기존 로거에서 가져옴)
+// ==========================================
+// Axios 타입 확장
+// ==========================================
 declare module "axios" {
   export interface InternalAxiosRequestConfig {
     metadata?: {
@@ -13,8 +14,9 @@ declare module "axios" {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// 기존 로거 설정/유형 (그대로 유지)
+// ==========================================
+// 로거 설정
+// ==========================================
 type LogLevel = "debug" | "info" | "warn" | "error";
 type AuthChecker = () => boolean | Promise<boolean>;
 
@@ -28,8 +30,9 @@ const logConfig = {
   maxDataLength: 1000,
 } as const;
 
-// ─────────────────────────────────────────────────────────────
-// 공통 유틸 (기존 로거에서 가져옴)
+// ==========================================
+// 유틸리티 함수들
+// ==========================================
 const colors = {
   blue: "color:#2196F3;font-weight:bold;",
   green: "color:#4CAF50;font-weight:bold;",
@@ -52,6 +55,7 @@ const statusTexts: Record<number, string> = {
   503: "Service Unavailable",
 };
 
+// 유틸리티 함수들
 const nowKR = () => new Date().toLocaleString("ko-KR");
 const toKB = (bytes: number) => (bytes < 1024 ? `${bytes} B` : bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`);
 
@@ -95,16 +99,18 @@ const perfGrade = (ms: number) => {
 const maskHeaders = (headers?: any) => {
   if (!headers) return headers;
   const safe = { ...headers };
-  const keys = Object.keys(safe);
-  keys.forEach((k) => {
+  Object.keys(safe).forEach((k) => {
     if (/authorization/i.test(k)) safe[k] = "***MASKED***";
   });
   return safe;
 };
 
 const log = (msg: string, style?: string) => {
-  if (logConfig.colorize && style) console.log(`%c${msg}`, style);
-  else console.log(msg);
+  if (logConfig.colorize && style) {
+    console.log(`%c${msg}`, style);
+  } else {
+    console.log(msg);
+  }
 };
 
 const formatRemain = (ms: number) => {
@@ -115,8 +121,9 @@ const formatRemain = (ms: number) => {
   return m > 0 ? `${m}분 ${s}초` : `${s}초`;
 };
 
-// ─────────────────────────────────────────────────────────────
-// 토큰 만료/인증 체크 (기존 로거에서 가져옴)
+// ==========================================
+// 토큰 만료/인증 체크
+// ==========================================
 const tokenExpiryGetters = {
   storage: (): number | null => {
     const v = localStorage.getItem("accessTokenExpiry") || localStorage.getItem("tokenExpiry") || localStorage.getItem("expiresAt");
@@ -157,14 +164,19 @@ let getExpiry: () => number | null = () => tokenExpiryGetters.storage() || token
 
 const authCheckers = {
   ls: () => {
-    const t = localStorage.getItem("accessToken") || localStorage.getItem("authToken") || localStorage.getItem("token");
-    return !!t && t !== "undefined" && t !== "null";
+    const tokens = ["accessToken", "authToken", "token"];
+    const t = tokens.find((token) => localStorage.getItem(token));
+    return t ? !["undefined", "null"].includes(localStorage.getItem(t) || "") : false;
   },
   ss: () => {
-    const t = sessionStorage.getItem("accessToken") || sessionStorage.getItem("authToken") || sessionStorage.getItem("token");
-    return !!t && t !== "undefined" && t !== "null";
+    const tokens = ["accessToken", "authToken", "token"];
+    const t = tokens.find((token) => sessionStorage.getItem(token));
+    return t ? !["undefined", "null"].includes(sessionStorage.getItem(t) || "") : false;
   },
-  cookie: () => document.cookie.split(";").some((c) => ["accessToken", "authToken", "token", "jwt"].includes(c.trim().split("=")[0])),
+  cookie: () => {
+    const cookieTokens = ["accessToken", "authToken", "token", "jwt"];
+    return document.cookie.split(";").some((c) => cookieTokens.includes(c.trim().split("=")[0]));
+  },
   header: () => !!(api.defaults.headers?.common?.Authorization || api.defaults.headers?.common?.authorization),
   custom: () => {
     try {
@@ -181,8 +193,10 @@ const getAuthStatus = async () => {
   try {
     const ok = await Promise.resolve(isAuthed());
     if (!ok) return { icon: "🔓", label: "Not Authenticated" as const };
+
     const exp = getExpiry();
     if (!exp) return { icon: "🔐", label: "Authenticated" as const };
+
     const left = exp - Date.now();
     const remains = formatRemain(left);
     return { icon: "🔐", label: `Authenticated (${remains})` as const, left };
@@ -191,8 +205,9 @@ const getAuthStatus = async () => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
+// ==========================================
 // Axios 인스턴스 생성
+// ==========================================
 const api = axios.create({
   baseURL: getApiBaseUrl(),
   timeout: 5000,
@@ -201,20 +216,21 @@ const api = axios.create({
   },
 });
 
-// ─────────────────────────────────────────────────────────────
+// ==========================================
 // 인터셉터 설정
+// ==========================================
 let reqSeq = 0;
 
-// 요청 인터셉터 (기존 로거 + 인증 토큰)
+// 요청 인터셉터
 api.interceptors.request.use((config) => {
-  // 토큰 설정 (기본 기능)
+  // 토큰 설정
   const token = localStorage.getItem("accessToken");
   if (token) {
     config.headers = config.headers || {};
     config.headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // 개발 모드에서만 상세 로깅 (기존 로거)
+  // 개발 모드에서만 로깅
   if (isDev()) {
     const reqId = ++reqSeq;
     const start = Date.now();
@@ -222,7 +238,6 @@ api.interceptors.request.use((config) => {
 
     const { method, url, data, headers } = config;
     const t = nowKR();
-
     const qs = logConfig.showQueryParams ? parseQS(url) : "{}";
     const hdr = logConfig.showHeaders ? maskHeaders(headers) : undefined;
 
@@ -251,15 +266,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 응답 인터셉터 (기존 로거 + 401 처리)
+// 응답 인터셉터
 api.interceptors.response.use(
   async (response) => {
-    // API 응답 구조에서 에러 체크 (기본 기능)
+    // API 응답 구조에서 에러 체크
     if (response.data?.code?.includes("-E")) {
       return Promise.reject(new Error(response.data.message));
     }
 
-    // 개발 모드에서만 상세 로깅 (기존 로거)
+    // 개발 모드에서만 로깅
     if (isDev()) {
       const { config, status, data, headers } = response;
       const { requestId, startTime } = config.metadata ?? {};
@@ -268,10 +283,11 @@ api.interceptors.response.use(
       const p = perfGrade(dur);
       const auth = logConfig.showAuthStatus ? await getAuthStatus() : null;
 
+      const importantHeaders = ["content-type", "cache-control", "etag", "x-ratelimit-remaining", "x-response-time"];
       const hdr = logConfig.showHeaders
         ? (() => {
             const imp: Record<string, any> = {};
-            ["content-type", "cache-control", "etag", "x-ratelimit-remaining", "x-response-time"].forEach((k) => {
+            importantHeaders.forEach((k) => {
               if ((headers as any)?.[k]) imp[k] = (headers as any)[k];
             });
             return Object.keys(imp).length ? `\n│ Headers     : ${JSON.stringify(imp, null, 2).replace(/\n/g, "\n│               ")}` : "";
@@ -297,14 +313,14 @@ api.interceptors.response.use(
   async (error) => {
     const status = error.response?.status;
 
-    // 401 에러 처리 (기본 기능)
+    // 401 에러 처리
     if (status === 401) {
       localStorage.removeItem("accessToken");
       delete api.defaults.headers.common["Authorization"];
       router.push("/auth/login");
     }
 
-    // 개발 모드에서만 상세 로깅 (기존 로거)
+    // 개발 모드에서만 로깅
     if (isDev()) {
       const config = error?.config ?? {};
       const { requestId, startTime } = (config as any).metadata ?? {};
@@ -332,8 +348,9 @@ api.interceptors.response.use(
   }
 );
 
-// ─────────────────────────────────────────────────────────────
-// 런타임 설정 API (기존 로거에서 가져옴)
+// ==========================================
+// 런타임 설정 API
+// ==========================================
 if (isDev()) {
   console.log("🔧 API Logger가 활성화되었습니다.");
 

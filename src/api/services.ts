@@ -1,7 +1,9 @@
 import api from "./client";
-import type { ApiResponse } from "@/api/types";
+import type { ApiResponse, LoginRequest, LoginResponse, MacAddressRequest, EmailVerificationRequest, PasswordChangeRequest, RegisterSearchRequest, EstimateWithdrawRequest, EstimateInfoRequest, EstimateDefaultInfoRequest, EstimateCreateRequest } from "./types";
 
-// Helper function
+// ==========================================
+// Helper Functions
+// ==========================================
 const extractFullResponse = <T>(response: any): ApiResponse<T> => {
   if (!response.data) {
     throw new Error("서버 응답이 올바르지 않습니다.");
@@ -9,9 +11,11 @@ const extractFullResponse = <T>(response: any): ApiResponse<T> => {
   return response.data;
 };
 
+// ==========================================
 // Auth Services
-export const login = async (payload: any) => {
-  const response = await api.post<ApiResponse>("/user/login", payload);
+// ==========================================
+export const login = async (payload: LoginRequest) => {
+  const response = await api.post<ApiResponse<LoginResponse>>("/user/login", payload);
   return extractFullResponse(response);
 };
 
@@ -21,95 +25,65 @@ export const logout = async () => {
 };
 
 export const getToken = async () => {
-  const response = await api.get<ApiResponse>("/user/get-token");
+  const response = await api.get<ApiResponse<LoginResponse>>("/user/get-token");
   return extractFullResponse(response);
 };
 
+// ==========================================
 // User Security Services
-export const sendAuthEmailBeforeChgPwd = async (data: any) => {
+// ==========================================
+export const sendAuthEmailBeforeChgPwd = async (data: MacAddressRequest) => {
   const response = await api.post<ApiResponse>("/user/secure-send-auth-email", data);
   return extractFullResponse(response);
 };
 
-export const verifyEmailAuthKey = async (data: any) => {
+export const verifyEmailAuthKey = async (data: EmailVerificationRequest) => {
   const response = await api.post<ApiResponse>("/user/verify-email-auth-key", data);
   return extractFullResponse(response);
 };
 
-export const sendAuthEmail = async (data: any) => {
+export const sendAuthEmail = async (data: MacAddressRequest) => {
   const response = await api.post<ApiResponse>("/user/send-auth-email", data);
   return extractFullResponse(response);
 };
 
-export const changePassword = async (data: any) => {
+export const changePassword = async (data: PasswordChangeRequest) => {
   const response = await api.patch<ApiResponse>("/user/change-pwd", data);
   return extractFullResponse(response);
 };
 
-export const changeMyPassword = async (data: any) => {
+export const changeMyPassword = async (data: PasswordChangeRequest) => {
   const response = await api.patch<ApiResponse>("/user/change-my-pwd", data);
   return extractFullResponse(response);
 };
 
-export const searchRegister = async (data: any) => {
+// ==========================================
+// Register Services
+// ==========================================
+export const searchRegister = async (data: RegisterSearchRequest) => {
   const response = await api.post<ApiResponse>("/register/search-register", data);
   return extractFullResponse(response);
 };
 
-/* ================================
- *  Estimate Services (신규 추가)
- * ================================ */
-
-// 견적 철회
-export const withdrawEstimate = async (data: { estimateId: number }) => {
+// ==========================================
+// Estimate Services
+// ==========================================
+export const withdrawEstimate = async (data: EstimateWithdrawRequest) => {
   const response = await api.patch<ApiResponse>("/estimate/withdraw-estimate", data);
   return extractFullResponse(response);
 };
 
-// 견적 기본정보 조회
-export const getEstimateInfo = async (data: { registerId: number }) => {
+export const getEstimateInfo = async (data: EstimateInfoRequest) => {
   const response = await api.post<ApiResponse>("/estimate/get-estimate-info", data);
   return extractFullResponse(response);
 };
 
-export const getEstimateDefaultInfo = async (data: {
-  registerId: number;
-  registerType: string; // 스펙상 "transfer" (소유권이전) 사용
-}) => {
+export const getEstimateDefaultInfo = async (data: EstimateDefaultInfoRequest) => {
   const response = await api.post<ApiResponse>("/estimate/get-default-info", data);
   return extractFullResponse(response);
 };
 
-// 견적 입력(등록)
-export const insEstimateInfo = async (data: {
-  registerApplicationNumber: string;
-  registerProgressName: string;
-  registerTypeId: number;
-  isTermsAgreed: boolean;
-  maintenanceFee: {
-    baseFee: number;
-    additionalFee: number;
-    causeCertFee: number;
-    publicChargeFee: number;
-    bondSaleFee: number;
-    realEstateReportFee: number;
-    reimbursementFee: number;
-    certificationFee: number;
-    confirmationFee: number;
-    otherCosts: number;
-    vat: number;
-    totalFee: number;
-  };
-  utilityBills: {
-    acquisitionTax: number;
-    registerLicenseTax: number;
-    educationTax: number;
-    ruralSpecialTax: number;
-    stampTax: number;
-    applicationFee: number;
-    totalPublicCharges: number;
-  };
-}) => {
+export const insEstimateInfo = async (data: EstimateCreateRequest) => {
   const response = await api.post<ApiResponse>("/estimate/ins-estimate-info", data);
   return extractFullResponse(response);
 };

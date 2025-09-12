@@ -6,19 +6,10 @@ import * as authAPI from "@/api";
 import api from "@/api/client";
 import type { AxiosError } from "axios";
 import { useUI } from "@/composables/useUI";
+import { logApiSuccess, logApiError } from "@/utils/apiHelpers";
 
 // ==========================================
-// Response Helper Functions
-// ==========================================
-
-// 성공 응답 헬퍼 - 직접 객체 반환
-const getRes = (response: any) => response || {};
-
-// 에러 응답 헬퍼 - 직접 객체 반환
-const getErr = (error: any) => error?.response?.data || {};
-
-// ==========================================
-// MAC Address 가져오기
+// MAC Address 관련 함수들 (useAuth 전용)
 // ==========================================
 const DUMMY_MAC = "00:00:00:00:00:00";
 
@@ -63,8 +54,7 @@ export function useAuth() {
       return authAPI.login({ ...loginData, macAddress });
     },
     onSuccess: (response, variables) => {
-      const res = getRes(response);
-      console.log(`📊 [${res.status}] ${res.title}: ${res.message}`);
+      const res = logApiSuccess("로그인", response);
 
       // ✅ 이메일 인증 미진행
       if (res.code === "U-S005") {
@@ -86,15 +76,14 @@ export function useAuth() {
         api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         authStore.setToken(accessToken, accessTokenExpiry);
 
-        console.log("✅ 로그인 성공 - Authorization 토큰 설정 완료");
+        console.log("✅ Authorization 토큰 설정 완료");
         console.log("✅ userId 저장 완료:", userId);
 
         router.push("/");
       }
     },
     onError: async (error: any) => {
-      const err = getErr(error);
-      console.error(`🚨 로그인 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      const err = logApiError("로그인", error);
 
       if (err.code === "A-E005") {
         const currentMacAddress = await getMacAddress();
@@ -118,12 +107,10 @@ export function useAuth() {
   const logout = useMutation<any, Error, void>({
     mutationFn: authAPI.logout,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`✅ 로그아웃 성공 [${res.status}] ${res.title}: ${res.message}`);
+      logApiSuccess("로그아웃", response);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 로그아웃 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("로그아웃", error);
     },
     onSettled: () => authStore.clearToken(),
   });
@@ -134,19 +121,17 @@ export function useAuth() {
   const renewToken = useMutation<any, Error>({
     mutationFn: authAPI.getToken,
     onSuccess: (response) => {
-      const res = getRes(response);
+      const res = logApiSuccess("토큰 갱신", response);
 
       if (res.data?.accessToken && res.data?.accessTokenExpiry) {
         const { accessToken, accessTokenExpiry } = res.data;
         localStorage.setItem("accessToken", accessToken);
         api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         authStore.setToken(accessToken, accessTokenExpiry);
-        console.log(`🔁 토큰 갱신 완료 [${res.status}] ${res.title}: ${res.message}`);
       }
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 토큰 갱신 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("토큰 갱신", error);
     },
   });
 
@@ -156,12 +141,10 @@ export function useAuth() {
   const sendSecureEmail = useMutation<any, Error, any>({
     mutationFn: authAPI.sendAuthEmailBeforeChgPwd,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`📧 인증 메일 발송 성공 [${res.status}] ${res.title}: ${res.message}`);
+      logApiSuccess("📧 인증 메일 발송", response);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 인증 메일 발송 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("📧 인증 메일 발송", error);
     },
   });
 
@@ -169,12 +152,10 @@ export function useAuth() {
   const verifyEmailKey = useMutation<any, Error, any>({
     mutationFn: authAPI.verifyEmailAuthKey,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`🔑 이메일 인증키 검증 성공 [${res.status}] ${res.title}: ${res.message}`);
+      logApiSuccess("🔑 이메일 인증키 검증", response);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 이메일 인증키 검증 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("🔑 이메일 인증키 검증", error);
     },
   });
 
@@ -182,12 +163,10 @@ export function useAuth() {
   const resendEmail = useMutation<any, Error, any>({
     mutationFn: authAPI.sendAuthEmail,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`📤 인증 메일 발송 성공 [${res.status}] ${res.title}: ${res.message}`);
+      logApiSuccess("📤 인증 메일 재발송", response);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 인증 메일 발송 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("📤 인증 메일 재발송", error);
     },
   });
 
@@ -195,12 +174,10 @@ export function useAuth() {
   const changePassword = useMutation<any, Error, any>({
     mutationFn: authAPI.changePassword,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`🔒 비밀번호 변경 성공 [${res.status}] ${res.title}: ${res.message}`);
+      logApiSuccess("🔒 비밀번호 변경", response);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 비밀번호 변경 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("🔒 비밀번호 변경", error);
     },
   });
 
@@ -208,12 +185,10 @@ export function useAuth() {
   const changeMyPassword = useMutation<any, Error, any>({
     mutationFn: authAPI.changeMyPassword,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`🛡️ 로그인 후 비밀번호 변경 성공 [${res.status}] ${res.title}: ${res.message}`);
+      logApiSuccess("🛡️ 로그인 후 비밀번호 변경", response);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 비밀번호 변경 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("🛡️ 비밀번호 변경", error);
     },
   });
 
@@ -221,12 +196,10 @@ export function useAuth() {
   const searchRegister = useMutation<any, Error, any>({
     mutationFn: authAPI.searchRegister,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`견적서 조회 [${res.status}] ${res.title}: ${res.message}`);
+      logApiSuccess("📋 견적서 조회", response);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 견적서 조회 실패 [${err.status}] ${err.title}: ${err.message || error.message}`);
+      logApiError("📋 견적서 조회", error);
     },
   });
 
@@ -234,14 +207,12 @@ export function useAuth() {
   const withdrawEstimate = useMutation<any, Error, { estimateId: number }>({
     mutationFn: authAPI.withdrawEstimate,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`🧹 견적 철회 성공 [${res.status}] ${res.title}: ${res.message}`);
-      ui.alert?.("title", "견적이 철회되었습니다.");
+      logApiSuccess("🧹 견적 철회", response);
+      ui.success("견적이 철회되었습니다.");
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 견적 철회 실패 [${err.status}] ${err.title}: ${err.message || (error as any).message}`);
-      ui.alert?.("견적 철회 실패", err.message || "알 수 없는 오류");
+      const err = logApiError("🧹 견적 철회", error);
+      ui.error(err.message || "견적 철회에 실패했습니다.");
     },
   });
 
@@ -249,13 +220,11 @@ export function useAuth() {
   const getEstimateInfo = useMutation<any, Error, { registerId: number }>({
     mutationFn: authAPI.getEstimateInfo,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`📄 견적 기본정보 조회 성공 [${res.status}] ${res.title}: ${res.message}`);
+      const res = logApiSuccess("📄 견적 기본정보 조회", response);
       console.debug("📦 estimateInfo:", res.data);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 견적 기본정보 조회 실패 [${err.status}] ${err.title}: ${err.message || (error as any).message}`);
+      logApiError("📄 견적 기본정보 조회", error);
     },
   });
 
@@ -270,13 +239,11 @@ export function useAuth() {
   >({
     mutationFn: authAPI.getEstimateDefaultInfo,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`⚙️ 견적 기본값 조회 성공 [${res.status}] ${res.title}: ${res.message}`);
+      const res = logApiSuccess("⚙️ 견적 기본값 조회", response);
       console.debug("⚙️ defaults:", res.data);
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 견적 기본값 조회 실패 [${err.status}] ${err.title}: ${err.message || (error as any).message}`);
+      logApiError("⚙️ 견적 기본값 조회", error);
     },
   });
 
@@ -284,14 +251,12 @@ export function useAuth() {
   const insEstimateInfo = useMutation<any, Error, any>({
     mutationFn: authAPI.insEstimateInfo,
     onSuccess: (response) => {
-      const res = getRes(response);
-      console.log(`📝 견적 등록 성공 [${res.status}] ${res.title}: ${res.message}`);
-      ui.alert?.("title", "견적이 등록되었습니다.");
+      logApiSuccess("📝 견적 등록", response);
+      ui.success("견적이 등록되었습니다.");
     },
     onError: (error) => {
-      const err = getErr(error);
-      console.error(`🚨 견적 등록 실패 [${err.status}] ${err.title}: ${err.message || (error as any).message}`);
-      ui.alert?.("견적 등록 실패", err.message || "알 수 없는 오류");
+      const err = logApiError("📝 견적 등록", error);
+      ui.error(err.message || "견적 등록에 실패했습니다.");
     },
   });
 
@@ -305,7 +270,6 @@ export function useAuth() {
     resendEmail,
     changePassword,
     changeMyPassword,
-
     searchRegister,
     // 신규(Estimate)
     withdrawEstimate,

@@ -111,7 +111,7 @@ import { useAuth } from "@/composables/useAuth";
 // 기본 사용자 입력
 const userId = ref("test1");
 const password = ref("happyTEst2025@@#");
-const macAddress = ref("42:00:40:f2:b8:43");
+const macAddress = ref("00:00:00:00:00:00");
 const emailAuthKey = ref("");
 const newPassword = ref("NewPassword123!");
 
