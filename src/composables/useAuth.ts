@@ -246,7 +246,7 @@ export function useAuth() {
   });
 
   // 견적서 작성정보 조회 (단건)
-  const getEstimateInfo = useMutation<any, Error, { registerApplicationNumber: string }>({
+  const getEstimateInfo = useMutation<any, Error, { registerId: number }>({
     mutationFn: authAPI.getEstimateInfo,
     onSuccess: (response) => {
       const res = getRes(response);
@@ -264,7 +264,7 @@ export function useAuth() {
     any,
     Error,
     {
-      registerApplicationNumber: string;
+      registerId: number;
       registerType: string;
     }
   >({

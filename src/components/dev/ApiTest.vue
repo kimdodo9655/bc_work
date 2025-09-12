@@ -72,13 +72,13 @@
 
     <li>
       <h4>견적서 작성정보 조회 (단건) /estimate/get-estimate-info</h4>
-      <input v-model="registerApplicationNumber" placeholder="등기신청번호 (예: RGST2025082100001)" />
+      <input v-model.number="registerId" placeholder="registerId" />
       <button @click="handleGetEstimateInfo">조회</button>
     </li>
 
     <li>
       <h4>견적서 기본 정보 조회 /estimate/get-default-info</h4>
-      <input v-model="registerApplicationNumber" placeholder="등기신청번호 (예: RGST2025082100001)" />
+      <input v-model.number="registerId" placeholder="registerId" />
       <input v-model="registerType" placeholder='registerType (예: "transfer")' />
       <button @click="handleGetEstimateDefaultInfo">조회</button>
     </li>
@@ -117,7 +117,7 @@ const newPassword = ref("NewPassword123!");
 
 // Estimate 신규 필드
 const estimateId = ref<number>(10);
-const registerApplicationNumber = ref("RGST2025082100001");
+const registerId = ref<number>(7);
 const insPayloadText = ref("");
 
 // 통합 useAuth
@@ -210,7 +210,7 @@ const handleWithdrawEstimate = () => {
 
 // 견적 기본정보 조회
 const handleGetEstimateInfo = () => {
-  getEstimateInfo.mutate({ registerApplicationNumber: registerApplicationNumber.value });
+  getEstimateInfo.mutate({ registerId: registerId.value });
 };
 
 // 견적 마스터 기본값 조회
@@ -219,7 +219,7 @@ const registerType = ref("transfer");
 // 핸들러 수정
 const handleGetEstimateDefaultInfo = () => {
   getEstimateDefaultInfo.mutate({
-    registerApplicationNumber: registerApplicationNumber.value,
+    registerId: registerId.value,
     registerType: registerType.value,
   });
 };

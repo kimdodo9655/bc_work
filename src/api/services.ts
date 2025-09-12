@@ -66,15 +66,15 @@ export const withdrawEstimate = async (data: { estimateId: number }) => {
   return extractFullResponse(response);
 };
 
-// 견적 기본정보 조회 (등기신청번호 기반)
-export const getEstimateInfo = async (data: { registerApplicationNumber: string }) => {
+// 견적 기본정보 조회
+export const getEstimateInfo = async (data: { registerId: number }) => {
   const response = await api.post<ApiResponse>("/estimate/get-estimate-info", data);
   return extractFullResponse(response);
 };
 
 export const getEstimateDefaultInfo = async (data: {
-  registerApplicationNumber: string;
-  registerType: "transfer" | string; // 스펙상 "transfer" (소유권이전) 사용
+  registerId: number;
+  registerType: string; // 스펙상 "transfer" (소유권이전) 사용
 }) => {
   const response = await api.post<ApiResponse>("/estimate/get-default-info", data);
   return extractFullResponse(response);
@@ -83,8 +83,8 @@ export const getEstimateDefaultInfo = async (data: {
 // 견적 입력(등록)
 export const insEstimateInfo = async (data: {
   registerApplicationNumber: string;
-  registerProgressName: string; // "전자등기"
-  registerTypeId: number; // 예: 1(소유권이전)
+  registerProgressName: string;
+  registerTypeId: number;
   isTermsAgreed: boolean;
   maintenanceFee: {
     baseFee: number;
