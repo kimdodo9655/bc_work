@@ -9,6 +9,11 @@ interface MacAddressErrorData {
   errorMessage: string;
 }
 
+interface EmailVerificationData {
+  code?: string;
+  macAddress?: string;
+}
+
 export function useNavigation() {
   const router = useRouter();
 
@@ -56,8 +61,21 @@ export function useNavigation() {
     }
   };
 
-  const goToEmailVerificationKey = () => {
-    router.push("/auth/verify-email-key");
+  // 이메일 인증키 페이지로 이동 (데이터와 함께)
+  const goToEmailVerificationKey = (emailVerificationData?: EmailVerificationData) => {
+    if (emailVerificationData) {
+      // 쿼리 파라미터로 데이터 전달
+      router.push({
+        name: "EmailVerificationKey", // 또는 "/auth/verify-email-key"
+        query: {
+          code: emailVerificationData.code,
+          macAddress: emailVerificationData.macAddress,
+        },
+      });
+    } else {
+      // 기존 방식 (데이터 없이)
+      router.push("/auth/verify-email-key");
+    }
   };
 
   const goToPasswordSetup = () => {

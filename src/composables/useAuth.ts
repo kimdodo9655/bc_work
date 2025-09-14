@@ -43,7 +43,7 @@ export function useAuth() {
   const router = useRouter();
   const authStore = useAuthStore();
   const ui = useUI();
-  const { goToSiteBlocked } = useNavigation();
+  const { goToEmailVerificationKey, goToSiteBlocked } = useNavigation();
 
   // ==========================================
   // 로그인
@@ -58,12 +58,25 @@ export function useAuth() {
 
       // ✅ 이메일 인증 미진행
       if (res.code === "U-S005") {
-        ui.alert(res.title, res.message);
+        ui.alert(res.title, res.message, async () => {
+          const macAddress = await getMacAddress();
+          goToEmailVerificationKey({
+            code: res.code,
+            macAddress: macAddress,
+          });
+        });
         return;
       }
 
       // ✅ 비밀번호 유효기간 초과
       if (res.code === "U-S006") {
+        ui.alert(res.title, res.message, async () => {
+          const macAddress = await getMacAddress();
+          goToEmailVerificationKey({
+            code: res.code,
+            macAddress: macAddress,
+          });
+        });
         return;
       }
 
@@ -85,6 +98,7 @@ export function useAuth() {
     onError: async (error: any) => {
       const err = logApiError("로그인", error);
 
+      // ❌ mac 미일치
       if (err.code === "A-E005") {
         const currentMacAddress = await getMacAddress();
         const registeredMacAddress = err.data?.accountMacAddress || "알 수 없음";
@@ -98,6 +112,8 @@ export function useAuth() {
         });
         return;
       }
+
+      ui.alert(err.title, err.message);
     },
   });
 
