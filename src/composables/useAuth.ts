@@ -1,3 +1,7 @@
+// ==========================================
+// src/composables/useAuth.ts
+// 인증 관련 컴포저블 (이메일 인증키 세션 기반 처리)
+// ==========================================
 import { useMutation } from "@tanstack/vue-query";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
@@ -164,14 +168,24 @@ export function useAuth() {
     },
   });
 
-  // 이메일 인증키 검증
-  const verifyEmailKey = useMutation<any, Error, any>({
-    mutationFn: authAPI.verifyEmailAuthKey,
+  // 이메일 인증키 검증 (세션에서 안전하게 읽어 요청)
+  const verifyEmailKey = useMutation<any, Error, void>({
+    mutationFn: async () => {
+      const raw = sessionStorage.getItem("emailVerify");
+      if (!raw) {
+        throw new Error("세션에 이메일 인증 데이터가 없습니다.");
+      }
+      const payload = JSON.parse(raw);
+      // 기대 payload: { code?: string; macAddress?: string }
+      return authAPI.verifyEmailAuthKey(payload);
+    },
     onSuccess: (response) => {
       logApiSuccess("🔑 이메일 인증키 검증", response);
+      sessionStorage.removeItem("emailVerify"); // 성공 시 정리
     },
     onError: (error) => {
       logApiError("🔑 이메일 인증키 검증", error);
+      sessionStorage.removeItem("emailVerify"); // 실패해도 정리 (요구에 따라 유지 원하면 이 줄 삭제)
     },
   });
 
@@ -292,13 +306,5 @@ export function useAuth() {
     getEstimateInfo,
     getEstimateDefaultInfo,
     insEstimateInfo,
-
-    // Loading states
-    isLoggingIn: login.isPending,
-    isLoggingOut: logout.isPending,
-    isRenewing: renewToken.isPending,
-
-    // Error states
-    loginError: login.error,
   };
 }

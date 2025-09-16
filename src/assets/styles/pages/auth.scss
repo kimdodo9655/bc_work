@@ -300,11 +300,16 @@
   }
 
   &--secondary {
-    background-color: $accent;
-    color: $white;
+    box-sizing: border-box;
+    border: 3px solid $accent;
+    background-color: $white;
+    color: $main-dark;
+    transition: all 0.25s ease;
 
     &:hover {
-      background-color: $main;
+      transform: scale(1.03);
+      background-color: $bg;
+      box-shadow: 0 2px 8px rgba($accent, 0.1);
     }
 
     &:focus-visible {
@@ -383,6 +388,9 @@
   }
 
   &__contact {
+    padding: 20px 40px;
+    background-color: $bg;
+    border-radius: 5px;
     display: flex;
     justify-content: center;
     margin-bottom: 2.5rem;

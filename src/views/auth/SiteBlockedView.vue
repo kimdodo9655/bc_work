@@ -7,7 +7,9 @@
     <div class="auth-card__right">
       <header class="auth-header">
         <h2 class="auth-header__title">사이트 접속 차단</h2>
-        <p class="auth-header__subtitle">{{ errorMessage || "해당 시스템은 사전에 등록된 기기만 접속 가능합니다." }}</p>
+        <p class="auth-header__subtitle">
+          {{ errorMessage || "해당 시스템은 사전에 등록된 기기만 접속 가능합니다." }}
+        </p>
       </header>
 
       <div class="mac-info">
@@ -49,46 +51,87 @@
 
 <script setup lang="ts">
 import { PcWarning } from "@iconoir/vue";
-import { useRoute } from "vue-router";
-import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { computed, onMounted, ref } from "vue";
 import { useNavigation } from "@/composables/useNavigation";
 
 const { goToLogin } = useNavigation();
 const route = useRoute();
+const router = useRouter();
 
-// ==========================================
-// 쿼리 파라미터에서 데이터 추출
-// ==========================================
-const currentMacAddress = computed(() => (route.query.currentMac as string) || "알 수 없음");
-const registeredMacAddress = computed(() => (route.query.registeredMac as string) || "등록되지 않음");
-const errorMessage = computed(() => route.query.errorMsg as string);
+type SiteBlockedData = {
+  currentMacAddress?: string;
+  registeredMacAddress?: string;
+  errorMessage?: string;
+};
 
-// ==========================================
-// MAC 주소 포맷팅 함수
-// ==========================================
+const SB_KEY = "siteBlocked";
+
+// 세션 읽기/쓰기 유틸
+function readSession(): SiteBlockedData | null {
+  try {
+    const raw = sessionStorage.getItem(SB_KEY);
+    return raw ? (JSON.parse(raw) as SiteBlockedData) : null;
+  } catch {
+    return null;
+  }
+}
+function writeSession(v: SiteBlockedData | null) {
+  try {
+    if (v && Object.values(v).some(Boolean)) {
+      sessionStorage.setItem(SB_KEY, JSON.stringify(v));
+    } else {
+      sessionStorage.removeItem(SB_KEY);
+    }
+  } catch {
+    sessionStorage.removeItem(SB_KEY);
+  }
+}
+
+// 화면에서 사용할 데이터(ref)
+const sb = ref<SiteBlockedData | null>(null);
+
+// 1) 하위호환: 쿼리로 들어온 경우 → 세션에 저장하고 URL에서 제거
+// 2) 평상시: 세션에서 읽어 표시
+onMounted(async () => {
+  const qCurrent = (route.query.currentMac as string | undefined)?.trim();
+  const qRegistered = (route.query.registeredMac as string | undefined)?.trim();
+  const qError = (route.query.errorMsg as string | undefined)?.trim();
+
+  if (qCurrent || qRegistered || qError) {
+    const next: SiteBlockedData = {
+      currentMacAddress: qCurrent,
+      registeredMacAddress: qRegistered,
+      errorMessage: qError,
+    };
+    writeSession(next);
+    sb.value = next;
+
+    // 주소창 쿼리 제거 (깨끗한 URL)
+    router.replace({
+      name: route.name as string,
+      params: route.params,
+      query: {},
+    });
+  } else {
+    sb.value = readSession();
+  }
+});
+
+// ===== 표시용 계산 로직 =====
+const currentMacAddress = computed(() => sb.value?.currentMacAddress || "알 수 없음");
+const registeredMacAddress = computed(() => sb.value?.registeredMacAddress || "등록되지 않음");
+const errorMessage = computed(() => sb.value?.errorMessage || "");
+
 function formatMacAddress(mac: string): string {
-  // 기본 포맷이 이미 XX:XX:XX:XX:XX:XX 형태라면 ':'를 ' – '로 변경
-  if (mac.includes(":")) {
-    return mac.replace(/:/g, " – ").toUpperCase();
-  }
-
-  // 하이픈이나 다른 구분자가 있다면 그대로 사용
-  if (mac.includes("-")) {
-    return mac.toUpperCase();
-  }
-
-  // 구분자가 없는 12자리 문자열이라면 2자리씩 나누어 포맷팅
+  if (mac.includes(":")) return mac.replace(/:/g, " – ").toUpperCase();
+  if (mac.includes("-")) return mac.toUpperCase();
   if (mac.length === 12 && /^[0-9A-Fa-f]+$/.test(mac)) {
-    return mac.match(/.{2}/g)?.join(" – ").toUpperCase() || mac;
+    return (mac.match(/.{2}/g)?.join(" – ") || mac).toUpperCase();
   }
-
-  // 그 외의 경우 그대로 반환
   return mac.toUpperCase();
 }
 
-// ==========================================
-// 계산된 속성
-// ==========================================
 const formattedCurrentMac = computed(() => formatMacAddress(currentMacAddress.value));
 const formattedRegisteredMac = computed(() => formatMacAddress(registeredMacAddress.value));
 </script>
