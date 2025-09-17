@@ -19,8 +19,13 @@
         <button @click="goToLogin">로그인</button>
         <button @click="goToAutoLogout">자동 로그아웃</button>
         <button @click="goToProgramInstall">프로그램 설치</button>
-        <button @click="goToSiteBlocked">사이트 접속 차단</button>
-        <button @click="goToEmailVerificationKey">이메일 인증키 입력</button>
+        <!-- 방법 1: 매개변수 없이 호출 -->
+        <button @click="goToSiteBlocked()">사이트 접속 차단</button>
+        <!-- 방법 2: 이벤트 객체를 무시하고 매개변수 전달 -->
+        <button @click="() => goToSiteBlockedWithData()">사이트 접속 차단 (데이터 포함)</button>
+        <!-- 방법 3: 이벤트를 받되 매개변수는 따로 전달 -->
+        <button @click="handleSiteBlockedClick">사이트 접속 차단 (핸들러)</button>
+        <button @click="goToEmailVerificationKey()">이메일 인증키 입력</button>
         <button @click="goToPasswordSetup">비밀번호 설정</button>
       </div>
 
@@ -126,4 +131,21 @@ const {
   goToPrivacy,
   goToInvalidAccess,
 } = useNavigation();
+
+// 개발용 핸들러들
+const goToSiteBlockedWithData = () => {
+  // 예시 데이터와 함께 호출
+  const mockMacErrorData = {
+    currentMacAddress: "AA:BB:CC:DD:EE:FF",
+    registeredMacAddress: "11:22:33:44:55:66",
+    errorMessage: "MAC 주소가 일치하지 않습니다.",
+  };
+  goToSiteBlocked(mockMacErrorData);
+};
+
+const handleSiteBlockedClick = (event: MouseEvent) => {
+  // 이벤트를 받되, 필요한 데이터는 별도로 준비
+  console.log("Button clicked:", event);
+  goToSiteBlocked(); // 매개변수 없이 호출하거나 필요시 데이터 전달
+};
 </script>

@@ -104,9 +104,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import TokenCountdown from "@/components/TokenCountdown.vue";
 import { useAuth } from "@/composables/useAuth";
+import type { AxiosError } from "axios";
 
 // 기본 사용자 입력
 const userId = ref("test1");
@@ -137,13 +138,14 @@ const {
   getEstimateInfo,
   getEstimateDefaultInfo,
   insEstimateInfo,
-
-  // 상태
-  isLoggingIn,
-  isLoggingOut,
-  isRenewing,
-  loginError,
 } = useAuth();
+
+const isLoggingIn = computed(() => ("isPending" in login ? login.isPending : (login as any).isLoading) as boolean);
+const isLoggingOut = computed(() => ("isPending" in logout ? logout.isPending : (logout as any).isLoading) as boolean);
+const isRenewing = computed(() => ("isPending" in renewToken ? renewToken.isPending : (renewToken as any).isLoading) as boolean);
+
+// AxiosError라면 message 접근용
+const loginError = computed<AxiosError | null>(() => ((login as any).isError ? ((login as any).error as AxiosError) ?? null : null));
 
 // 로그인
 const onSubmit = () => {

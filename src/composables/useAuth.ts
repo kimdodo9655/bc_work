@@ -169,23 +169,18 @@ export function useAuth() {
   });
 
   // 이메일 인증키 검증 (세션에서 안전하게 읽어 요청)
-  const verifyEmailKey = useMutation<any, Error, void>({
-    mutationFn: async () => {
-      const raw = sessionStorage.getItem("emailVerify");
-      if (!raw) {
-        throw new Error("세션에 이메일 인증 데이터가 없습니다.");
-      }
-      const payload = JSON.parse(raw);
-      // 기대 payload: { code?: string; macAddress?: string }
+  type VerifyEmailVars = { macAddress: string; emailAuthKey: string };
+
+  const verifyEmailKey = useMutation<any, Error, VerifyEmailVars>({
+    mutationFn: async (payload) => {
+      // 세션을 쓰지 않고, 컴포넌트에서 받은 값을 그대로 사용
       return authAPI.verifyEmailAuthKey(payload);
     },
     onSuccess: (response) => {
       logApiSuccess("🔑 이메일 인증키 검증", response);
-      sessionStorage.removeItem("emailVerify"); // 성공 시 정리
     },
     onError: (error) => {
       logApiError("🔑 이메일 인증키 검증", error);
-      sessionStorage.removeItem("emailVerify"); // 실패해도 정리 (요구에 따라 유지 원하면 이 줄 삭제)
     },
   });
 

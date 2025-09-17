@@ -1,38 +1,44 @@
 <template>
-  <header class="main-header">
-    <nav>
-      <img class="logo" src="@/assets/images/logos/image.png" alt="logo" />
+  <div class="fixed-area">
+    <div class="fixed-inner">
+      <header class="main-header">
+        <nav>
+          <img class="logo" src="@/assets/images/logos/image.png" alt="logo" />
 
-      <ul class="menu">
-        <li class="active">등기 견적 관리</li>
-        <li>등기 진행 현황</li>
-        <li>등기 일정 관리</li>
-        <li>비용 통계 관리</li>
+          <ul class="menu">
+            <li class="active">등기 견적 관리</li>
+            <li>등기 진행 현황</li>
+            <li>등기 일정 관리</li>
+            <li>비용 통계 관리</li>
+          </ul>
+
+          <ul class="user">
+            <li>
+              <Bell color="#999999" :width="28" :height="28" :stroke-width="2.0" />
+            </li>
+            <li>
+              <ProfileCircle color="#999999" :width="30" :height="30" :stroke-width="2.0" />
+            </li>
+            <li class="login-time">
+              <TimerSolid color="#ffffff" :width="20" :height="20" :stroke-width="2.0" />
+              <p>00:00</p>
+              <button>연장</button>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      <ul ref="bcRef" class="main-breadcrumbs">
+        <li>HOME</li>
+        <li><NavArrowRight color="#9999999" /></li>
+        <li>등기 견적 관리</li>
+        <li><NavArrowRight color="#999999" /></li>
+        <li class="now">등기 견적 관리 상세</li>
       </ul>
 
-      <ul class="user">
-        <li>
-          <Bell color="#999999" :width="28" :height="28" :stroke-width="2.0" />
-        </li>
-        <li>
-          <ProfileCircle color="#999999" :width="30" :height="30" :stroke-width="2.0" />
-        </li>
-        <li class="login-time">
-          <TimerSolid color="#ffffff" :width="20" :height="20" :stroke-width="2.0" />
-          <p>00:00</p>
-          <button>연장</button>
-        </li>
-      </ul>
-    </nav>
-  </header>
-
-  <ul ref="bcRef" class="main-breadcrumbs">
-    <li>HOME</li>
-    <li><NavArrowRight color="#9999999" /></li>
-    <li>등기 견적 관리</li>
-    <li><NavArrowRight color="#999999" /></li>
-    <li class="now">등기 견적 관리 상세</li>
-  </ul>
+      <h2 class="page-title">나의 사건 정보</h2>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -49,9 +55,17 @@ function applyScrollState(scrolled: boolean) {
 
   // 2) dashboard-bg margin-top 토글
   const dash = document.querySelector<HTMLElement>(".dashboard-bg");
-  if (dash) {
-    dash.style.marginTop = scrolled ? "-80px" : "-130px";
-    dash.style.paddingTop = scrolled ? "180px" : "230px";
+  const header = document.querySelector<HTMLElement>(".main-header");
+
+  if (dash && header) {
+    dash.style.marginTop = scrolled ? "240px" : "310px";
+    header.style.marginBottom = scrolled ? "0px" : "20px";
+  }
+
+  // 3) fixed-area에 .scrolled 토글 (100px 이상일 때)
+  const fixedArea = document.querySelector<HTMLElement>(".fixed-area");
+  if (fixedArea) {
+    fixedArea.classList.toggle("scrolled", window.scrollY > 30);
   }
 }
 

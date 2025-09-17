@@ -6,9 +6,6 @@
   min-height: calc(100vh - 80px);
   background-color: #ebf7f8;
   transition: 0.5s;
-
-  margin-top: -130px;
-  padding-top: 210px;
 }
 
 .dashboard-inner {
@@ -26,11 +23,6 @@
   }
 }
 
-.page-title {
-  color: $main-dark;
-  margin-bottom: 20px;
-}
-
 .dashboard-area {
   width: 100%;
   max-width: 1400px;
@@ -45,5 +37,5 @@
   box-shadow: 0 15px 25px #66666626, 0 5px 10px #6666660d;
   width: 100%;
   height: 500px;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
