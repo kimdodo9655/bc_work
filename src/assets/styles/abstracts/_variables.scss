@@ -21,24 +21,19 @@ $gray-999: #999999;
 $gray-ddd: #dddddd;
 
 // ==========================================
-// Typography 변수 (typography.scss에서 이동)
+// Typography 변수
 // ==========================================
 $font-family-title: "OneMobileTitle", sans-serif;
 $font-family-body: "NotoSansKR", sans-serif;
 
-// Font Size (rem 단위)
+// Font Size
 $font-sizes: (
-  h1: 2.25rem,
-  // 36px
-  h2: 1.875rem,
-  // 30px
-  h3: 1.5rem,
-  // 24px
-  h4: 1.25rem,
-  // 20px
-  h5: 1rem,
-  // 16px
-  h6: 0.875rem // 14px,,
+  h1: 36px,
+  h2: 30px,
+  h3: 24px,
+  h4: 20px,
+  h5: 16px,
+  h6: 14px,
 );
 
 // Font Weight
