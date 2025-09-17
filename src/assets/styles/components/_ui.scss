@@ -1,0 +1,322 @@
+// ==========================================
+// src/assets/styles/components/_ui.scss
+// UI 컴포넌트들의 스타일 정리
+// ==========================================
+@use "@/assets/styles/index" as *;
+
+/* ============================================
+   오버레이 스크롤바 컴포넌트
+   ============================================ */
+
+// 네이티브 스크롤바 숨기기 (타깃 엘리먼트에 클래스 부여)
+:global(.os-hide-native) {
+  -ms-overflow-style: none; /* IE/Edge 구형 */
+  scrollbar-width: none; /* Firefox */
+}
+:global(.os-hide-native::-webkit-scrollbar) {
+  width: 0;
+  height: 0; /* WebKit */
+}
+
+// 레일(오버레이)
+.os-rail {
+  position: absolute;
+  z-index: 20; /* .card-expansion.click(z-index:10)보다 위 */
+  opacity: 0;
+  transition: opacity 120ms ease;
+  /* 포인터 이벤트: 기본은 차단 (아래 컨텐츠 클릭 보장) */
+  pointer-events: none;
+}
+
+// 보이기 상태
+.os-visible {
+  opacity: 1;
+}
+
+// 엄지(드래그 가능한 영역만 포인터 허용)
+.os-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: saturate(1.2);
+  pointer-events: auto; /* 엄지에만 포인터 허용 */
+  cursor: grab;
+}
+.os-thumb:active {
+  cursor: grabbing;
+}
+
+// 접근성: 포커스시 윤곽
+.os-thumb:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.9);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   모달 공통 스타일
+   ============================================ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 300px;
+  max-width: 500px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1.5rem 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+  }
+
+  button {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background-color: transparent;
+    color: #999999;
+    cursor: pointer;
+    transition: 0.5s;
+    padding: 0;
+
+    svg {
+      transition: 0.5s;
+    }
+
+    &:hover svg {
+      color: $main;
+    }
+  }
+}
+
+.modal-body {
+  padding: 1rem 1.5rem;
+
+  p {
+    background-color: $bg;
+    padding: 25px;
+    border-radius: 5px;
+    margin: 10px 0 0;
+    color: $main-dark;
+    line-height: 1.7;
+    font-weight: 600;
+  }
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* ============================================
+   알럿 모달 전용
+   ============================================ */
+
+// AlertModal 컴포넌트의 modal-footer
+.alert-modal-footer {
+  padding: 0 1.5rem 1.5rem;
+  text-align: center;
+
+  .btn {
+    width: 100%;
+  }
+}
+
+/* ============================================
+   컨펌 모달 전용
+   ============================================ */
+
+// ConfirmModal 컴포넌트의 modal-footer
+.confirm-modal-footer {
+  padding: 1rem 1.5rem 1.5rem;
+  text-align: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+
+  .btn {
+    width: calc(50% - 5px);
+  }
+}
+
+/* ============================================
+   로딩 오버레이
+   ============================================ */
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-content {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid $main-light;
+  border-top: 4px solid $main;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-content p {
+  margin: 0;
+  color: $main;
+  font-weight: 600;
+}
+
+/* ============================================
+   토스트 리스트
+   ============================================ */
+
+.toast-container {
+  position: fixed;
+  left: 50%;
+  bottom: 200px;
+  z-index: 10001;
+  max-width: 350px;
+  transform: translateX(-50%);
+}
+
+.toast-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: white;
+
+  &.toast--success {
+    background: #4caf50;
+  }
+  &.toast--error {
+    background: #f44336;
+  }
+  &.toast--info {
+    background: $main;
+  }
+  &.toast--warning {
+    background: #ff9800;
+  }
+}
+
+.toast-content {
+  flex: 1;
+
+  h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: white;
+  }
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   공통 버튼 스타일 (모달에서 사용)
+   ============================================ */
+
+.btn {
+  padding: 0.75rem 2rem;
+  height: 40px;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &--primary {
+    background: $main;
+    color: white;
+
+    &:hover {
+      background: $main-dark;
+    }
+  }
+
+  &--secondary {
+    background: $accent;
+    color: white;
+
+    &:hover {
+      background: $main;
+    }
+  }
+}

@@ -10,14 +10,18 @@
 @use "@/assets/styles/base/typography";
 @use "@/assets/styles/base/utilities";
 
+// 컴포넌트 출력
+@use "@/assets/styles/components/ui";
+
 // 레이아웃 출력
 @use "@/assets/styles/layout/header";
 @use "@/assets/styles/layout/footer";
 @use "@/assets/styles/layout/dev-banner";
 
 // 페이지 출력
+@use "@/assets/styles/pages/common"; // 공통
 @use "@/assets/styles/pages/auth"; // 로그인 전
+@use "@/assets/styles/pages/program-install"; // 프로그램 설치 페이지
 @use "@/assets/styles/pages/onboarding"; // 로그인 후 금융기관 선택
 @use "@/assets/styles/pages/dashboard"; // 로그인 이후
 @use "@/assets/styles/pages/invalid-access"; // 잘못된 접근 페이지 (404, 403 등)
-@use "@/assets/styles/pages/common"; // 공통
