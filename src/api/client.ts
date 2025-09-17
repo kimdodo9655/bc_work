@@ -1,5 +1,6 @@
+// src/api/client.ts - 고급 로깅 시스템 포함 버전
 import axios from "axios";
-import { getApiBaseUrl, isDev } from "@/utils/env";
+import { env } from "@/utils/env";
 import router from "@/router";
 
 // ==========================================
@@ -209,7 +210,7 @@ const getAuthStatus = async () => {
 // Axios 인스턴스 생성
 // ==========================================
 const api = axios.create({
-  baseURL: getApiBaseUrl(),
+  baseURL: env.getApiBaseUrl(),
   timeout: 5000,
   headers: {
     "Content-Type": "application/json",
@@ -231,7 +232,7 @@ api.interceptors.request.use((config) => {
   }
 
   // 개발 모드에서만 로깅
-  if (isDev()) {
+  if (env.isDev()) {
     const reqId = ++reqSeq;
     const start = Date.now();
     config.metadata = { requestId: reqId, startTime: start };
@@ -275,7 +276,7 @@ api.interceptors.response.use(
     }
 
     // 개발 모드에서만 로깅
-    if (isDev()) {
+    if (env.isDev()) {
       const { config, status, data, headers } = response;
       const { requestId, startTime } = config.metadata ?? {};
       const t = nowKR();
@@ -321,7 +322,7 @@ api.interceptors.response.use(
     }
 
     // 개발 모드에서만 로깅
-    if (isDev()) {
+    if (env.isDev()) {
       const config = error?.config ?? {};
       const { requestId, startTime } = (config as any).metadata ?? {};
       const t = nowKR();
@@ -351,7 +352,7 @@ api.interceptors.response.use(
 // ==========================================
 // 런타임 설정 API
 // ==========================================
-if (isDev()) {
+if (env.isDev()) {
   console.log("🔧 API Logger가 활성화되었습니다.");
 
   Object.assign(window as any, {

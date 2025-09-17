@@ -5,6 +5,7 @@ import "@/assets/styles/main.scss";
 import router from "./router";
 import { createPinia } from "pinia";
 import { useAuthStore } from "./stores/auth";
+import "@/utils/performance"; // 성능 모니터링 활성화
 
 const app = createApp(App);
 const queryClient = new QueryClient();

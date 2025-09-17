@@ -11,7 +11,7 @@
     </div>
 
     <!-- 개발용 임시 네비게이션 바로가기 -->
-    <div class="dev-navigation" v-if="isDev()">
+    <div class="dev-navigation" v-if="env.isDev()">
       <h4>개발용 페이지 바로가기</h4>
 
       <div class="nav-section">
@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { useNavigation } from "@/composables/useNavigation";
-import { isDev } from "@/utils/env";
+import { env } from "@/utils/env";
 import { useUI } from "@/composables/useUI";
 
 const ui = useUI();

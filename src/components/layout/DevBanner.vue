@@ -5,6 +5,6 @@
 </template>
 
 <script setup lang="ts">
-import { getDevBannerText } from "@/utils/env";
-const devBannerText = getDevBannerText();
+import { env } from "@/utils/env";
+const devBannerText = env.getDevBannerText();
 </script>

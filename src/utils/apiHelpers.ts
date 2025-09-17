@@ -1,3 +1,4 @@
+// src/utils/apiHelpers.ts - 전체 파일을 이것으로 교체하세요
 /**
  * API 응답/에러 처리를 위한 공통 헬퍼 함수들
  */
@@ -15,8 +16,9 @@ export const logApiSuccess = (operation: string, response: any) => {
   return res;
 };
 
+// 에러 로깅 헬퍼
 export const logApiError = (operation: string, error: any) => {
   const err = getErr(error);
-  console.error(`🚨 ${operation} 실패 [${err.status}] ${err.title}: ${err.message || (error as any).message}`);
+  console.error(`🚨 ${operation} 실패 [${err.status || "Unknown"}] ${err.title || "Error"}: ${err.message || error.message}`);
   return err;
 };

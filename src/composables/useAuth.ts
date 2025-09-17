@@ -1,7 +1,4 @@
-// ==========================================
-// src/composables/useAuth.ts
-// 인증 관련 컴포저블 (이메일 인증키 세션 기반 처리)
-// ==========================================
+// src/composables/useAuth.ts - 전체 파일을 이것으로 교체하세요
 import { useMutation } from "@tanstack/vue-query";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
@@ -43,11 +40,51 @@ const getMacAddress = async (): Promise<string> => {
   }
 };
 
+// 안전한 스토리지 접근 함수들 (인라인)
+const safeStorage = {
+  set: (key: string, value: any): boolean => {
+    try {
+      const stringValue = typeof value === "string" ? value : JSON.stringify(value);
+      localStorage.setItem(key, stringValue);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+};
+
+// 에러 처리 함수 (인라인)
+const createErrorHandler = (operation: string) => {
+  return (error: any) => {
+    const err = error?.response?.data || {};
+    console.error(`🚨 ${operation} 실패 [${err.status || "Unknown"}] ${err.title || "Error"}: ${err.message || error.message}`);
+
+    return {
+      status: err.status || 500,
+      code: err.code || "UNKNOWN_ERROR",
+      title: err.title || "Error",
+      message: err.message || error.message || "Unknown error occurred",
+      userMessage: err.message || error.message || "Unknown error occurred",
+      data: err.data,
+    };
+  };
+};
+
 export function useAuth() {
   const router = useRouter();
   const authStore = useAuthStore();
   const ui = useUI();
   const { goToEmailVerificationKey, goToSiteBlocked } = useNavigation();
+
+  // 안전한 로컬 스토리지 접근
+  const saveTokenSafely = (token: string, expiry: number, userId: string) => {
+    safeStorage.set("accessToken", token);
+    safeStorage.set("userId", userId);
+    safeStorage.set("accessTokenExpiry", expiry.toString());
+
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    authStore.setToken(token, expiry);
+  };
 
   // ==========================================
   // 로그인
@@ -88,11 +125,7 @@ export function useAuth() {
         const { accessToken, accessTokenExpiry } = res.data;
         const userId = variables.userId;
 
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("userId", userId);
-        api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-        authStore.setToken(accessToken, accessTokenExpiry);
-
+        saveTokenSafely(accessToken, accessTokenExpiry, userId);
         console.log("✅ Authorization 토큰 설정 완료");
         console.log("✅ userId 저장 완료:", userId);
 
@@ -100,7 +133,8 @@ export function useAuth() {
       }
     },
     onError: async (error: any) => {
-      const err = logApiError("로그인", error);
+      const errorHandler = createErrorHandler("로그인");
+      const err = errorHandler(error);
 
       // ❌ mac 미일치
       if (err.code === "A-E005") {
