@@ -1,7 +1,8 @@
-// src/utils/apiHelpers.ts - 전체 파일을 이것으로 교체하세요
-/**
+// src/utils/apiHelpers.ts
+
+/* ***********************************
  * API 응답/에러 처리를 위한 공통 헬퍼 함수들
- */
+ *********************************** */
 
 // 성공 응답 헬퍼 - 직접 객체 반환
 export const getRes = (response: any) => response || {};

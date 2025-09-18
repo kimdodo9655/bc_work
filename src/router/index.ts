@@ -19,6 +19,16 @@ const routes: Array<RouteRecordRaw> = [
     component: { template: "<div />" },
   },
 
+  {
+    path: "/apitest",
+    name: "ApiTester",
+    component: () => import("@/components/dev/ApiTester.vue"),
+    meta: {
+      requiresAuth: false,
+      title: "API Tester",
+    },
+  },
+
   /**
    * 대시보드 / 보호 라우트
    */
@@ -123,14 +133,14 @@ const router = createRouter({
  * 전역 가드: 보호 라우트 접근 시 로그인 유도
  */
 router.beforeEach((to) => {
-  // const requiresAuth = to.matched.some((r) => r.meta?.requiresAuth === true);
-  // if (requiresAuth && !isAuthenticated()) {
-  //   return { name: 'Login', query: { redirect: to.fullPath } };
-  // }
-  // // 로그인 상태에서 로그인 페이지 접근 시 홈으로
-  // if (to.name === 'Login' && isAuthenticated()) {
-  //   return { name: 'Home' };
-  // }
+  const requiresAuth = to.matched.some((r) => r.meta?.requiresAuth === true);
+  if (requiresAuth && !isAuthenticated()) {
+    return { name: "Login", query: { redirect: to.fullPath } };
+  }
+  // 로그인 상태에서 로그인 페이지 접근 시 홈으로
+  if (to.name === "Login" && isAuthenticated()) {
+    return { name: "Home" };
+  }
 });
 
 export default router;
