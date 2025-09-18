@@ -228,6 +228,62 @@
         </div>
       </div>
 
+      <!-- Response Examples Section - Full Width -->
+      <div class="examples-section-full" v-if="selectedTemplate">
+        <div class="examples-header">
+          <h2>📋 Response Examples - {{ selectedTemplate.name }}</h2>
+          <button @click="closeExamples" class="close-examples-btn">✕ 닫기</button>
+        </div>
+
+        <!-- Dynamic Examples Table -->
+        <div v-if="selectedTemplate.examples && selectedTemplate.examples.length > 0" class="examples-content">
+          <div class="examples-table-wrapper">
+            <table class="examples-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Code</th>
+                  <th>Response Data & Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(example, index) in selectedTemplate.examples" :key="index" :class="example.type === 'success' ? 'success-row' : 'error-row'">
+                  <td>
+                    <span :class="['type-badge', example.type]">{{ example.type === "success" ? "Success" : "Error" }}</span>
+                  </td>
+                  <td>
+                    <span :class="['status-code', example.type]">{{ example.status }}</span>
+                  </td>
+                  <td>
+                    <code>{{ example.code }}</code>
+                  </td>
+                  <td class="response-preview">
+                    <details>
+                      <summary>{{ example.message }}</summary>
+                      <div class="response-content">
+                        <pre>{{ JSON.stringify(example.responseData, null, 2) }}</pre>
+                        <button @click="loadExample(example)" :class="['preview-btn', example.type]">Load Example</button>
+                      </div>
+                    </details>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- No Examples Yet -->
+        <div v-else class="no-examples">
+          <div class="no-examples-icon">📝</div>
+          <h3>아직 Response Examples가 없습니다</h3>
+          <p>{{ selectedTemplate.name }} API의 Response Examples는 준비 중입니다.</p>
+          <div class="coming-soon">
+            <span class="badge">Coming Soon</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Notification Toast -->
       <div v-if="notification.show" :class="['notification-toast', `notification-${notification.type}`]">
         {{ notification.message }}
@@ -258,6 +314,13 @@ interface ApiTemplate {
   method: string;
   endpoint: string;
   body: string;
+  examples?: Array<{
+    type: "success" | "error";
+    status: number;
+    code: string;
+    message: string;
+    responseData: any;
+  }>;
 }
 
 interface ApiRequest {
@@ -300,6 +363,9 @@ const activeTab = ref<"body" | "headers" | "raw">("body");
 const history = ref<HistoryItem[]>([]);
 const jsonError = ref<string>("");
 
+// 새로 추가된 상태
+const selectedTemplate = ref<ApiTemplate | null>(null);
+
 // Base URL
 const baseUrl = computed(() => env.getApiBaseUrl());
 const isConnected = ref<boolean>(true);
@@ -319,6 +385,89 @@ const apiTemplates: ApiTemplate[] = [
       null,
       2
     ),
+    examples: [
+      {
+        type: "success",
+        status: 200,
+        code: "U-S001",
+        message: "로그인이 성공적으로 완료되었습니다.",
+        responseData: {
+          status: 200,
+          code: "U-S001",
+          title: "로그인 성공",
+          message: "로그인이 성공적으로 완료되었습니다.",
+          data: {
+            accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0MTAiLCJpYXQiOjE2NDEyMzQ1Njd9.example",
+            accessTokenExpiry: 1641234567890,
+            userId: "test10",
+          },
+        },
+      },
+      {
+        type: "error",
+        status: 401,
+        code: "U-E001",
+        message: "아이디 또는 비밀번호가 올바르지 않습니다.",
+        responseData: {
+          status: 401,
+          code: "U-E001",
+          title: "로그인 실패",
+          message: "아이디 또는 비밀번호가 올바르지 않습니다.",
+          data: null,
+        },
+      },
+      {
+        type: "error",
+        status: 400,
+        code: "A-E005",
+        message: "등록된 MAC 주소와 일치하지 않습니다.",
+        responseData: {
+          status: 400,
+          code: "A-E005",
+          title: "MAC 주소 불일치",
+          message: "등록된 MAC 주소와 일치하지 않습니다.",
+          data: {
+            currentMacAddress: "d0:11:e5:7b:11:ed",
+            registeredMacAddress: "aa:bb:cc:dd:ee:ff",
+            accountMacAddress: "aa:bb:cc:dd:ee:ff",
+          },
+        },
+      },
+      {
+        type: "error",
+        status: 400,
+        code: "U-E002",
+        message: "필수 파라미터가 누락되었습니다.",
+        responseData: {
+          status: 400,
+          code: "U-E002",
+          title: "파라미터 오류",
+          message: "필수 파라미터가 누락되었습니다.",
+          data: {
+            missingFields: ["userId", "password"],
+            providedFields: ["macAddress"],
+          },
+        },
+      },
+      {
+        type: "error",
+        status: 429,
+        code: "U-E003",
+        message: "로그인 시도 횟수를 초과했습니다.",
+        responseData: {
+          status: 429,
+          code: "U-E003",
+          title: "요청 제한",
+          message: "로그인 시도 횟수를 초과했습니다.",
+          data: {
+            retryAfter: 300,
+            maxAttempts: 5,
+            currentAttempts: 5,
+            resetTime: "2025-01-01T10:05:00Z",
+          },
+        },
+      },
+    ],
   },
   {
     name: "로그아웃",
@@ -377,7 +526,7 @@ const apiTemplates: ApiTemplate[] = [
     endpoint: "/user/secure-send-auth-email",
     body: JSON.stringify(
       {
-        macAddress: "00:00:00:00:00:00",
+        macAddress: "d0:11:e5:7b:11:ed",
       },
       null,
       2
@@ -389,7 +538,7 @@ const apiTemplates: ApiTemplate[] = [
     endpoint: "/user/verify-email-auth-key",
     body: JSON.stringify(
       {
-        macAddress: "00:00:00:00:00:00",
+        macAddress: "d0:11:e5:7b:11:ed",
         emailAuthKey: "TEST123",
       },
       null,
@@ -430,7 +579,27 @@ const responseSize = computed(() => {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 });
 
-// Methods
+// 새로 추가된 메서드들
+const closeExamples = (): void => {
+  selectedTemplate.value = null;
+};
+
+const loadExample = (example: any): void => {
+  response.value = {
+    status: example.status,
+    statusText: example.type === "success" ? "OK" : "Error",
+    headers: {
+      "content-type": "application/json",
+      "x-example": example.type,
+    },
+    data: example.responseData,
+  } as any;
+
+  responseTime.value = Math.floor(Math.random() * 200) + 50;
+  showNotification(`${example.message} 예시를 로드했습니다.`, example.type === "success" ? "success" : "info");
+};
+
+// Methods (기존 코드 유지)
 const addHeader = (): void => {
   request.headers.push({ key: "", value: "" });
 };
@@ -465,22 +634,18 @@ const clearAuth = (): void => {
     request.headers.splice(index, 1);
   }
 
-  // API 테스터 독립 상태 클리어 (authStore 완전 제거)
   authState.token = "";
   authState.expiry = 0;
 
-  // localStorage에서 토큰 제거
   localStorage.removeItem("accessToken");
   localStorage.removeItem("accessTokenExpiry");
 
-  // 자동 로그아웃 타이머 정지
   stopAutoLogoutTimer();
 
-  showNotification("✅ 인증이 해제되었습니다.", "success");
-  console.log("🔓 Auth cleared (API Tester independent state only)");
+  showNotification("인증이 해제되었습니다.", "success");
+  console.log("Auth cleared (API Tester independent state only)");
 };
 
-// Auto-manage auth headers for login/logout
 const autoAddAuthHeader = (token: string): void => {
   const authHeader = request.headers.find((h) => h.key.toLowerCase() === "authorization");
   if (authHeader) {
@@ -524,7 +689,7 @@ const validateJson = (): void => {
   try {
     JSON.parse(request.body);
     jsonError.value = "";
-    showNotification("JSON is valid! ✓", "success");
+    showNotification("JSON is valid!", "success");
   } catch (e) {
     jsonError.value = `Invalid JSON: ${(e as Error).message}`;
     showNotification("Invalid JSON format", "error");
@@ -541,7 +706,6 @@ const sendRequest = async (): Promise<void> => {
   const startTime = Date.now();
 
   try {
-    // Prepare headers
     const headers: Record<string, string> = {};
     request.headers.forEach((h) => {
       if (h.key && h.value) {
@@ -549,7 +713,6 @@ const sendRequest = async (): Promise<void> => {
       }
     });
 
-    // Prepare body
     let body: any = undefined;
     if (["POST", "PUT", "PATCH"].includes(request.method)) {
       if (bodyType.value === "json") {
@@ -566,7 +729,6 @@ const sendRequest = async (): Promise<void> => {
       }
     }
 
-    // Create dedicated axios instance for testing (no interceptors)
     const testApi = axios.create({
       baseURL: baseUrl.value,
       timeout: 30000,
@@ -576,7 +738,6 @@ const sendRequest = async (): Promise<void> => {
       },
     });
 
-    // Make request without using project's API client to avoid side effects
     const config = {
       method: request.method.toLowerCase() as "get" | "post" | "put" | "patch" | "delete",
       url: request.endpoint,
@@ -588,73 +749,54 @@ const sendRequest = async (): Promise<void> => {
     responseTime.value = Date.now() - startTime;
     response.value = result;
 
-    // Handle login success - automatically add auth header
     if (request.endpoint === "/user/login" && result.status === 200 && result.data?.data?.accessToken) {
       const token = result.data.data.accessToken;
       const expiry = result.data.data.accessTokenExpiry;
 
-      // Update API Tester 독립 상태 (authStore 완전 제거!)
       authState.token = token;
       authState.expiry = expiry;
 
-      // localStorage에 토큰 저장 (로그인 상태 유지)
       localStorage.setItem("accessToken", token);
       localStorage.setItem("accessTokenExpiry", expiry.toString());
 
-      // Auto-add authorization header to current request headers
       autoAddAuthHeader(token);
-
-      // 자동 로그아웃 타이머 시작
       startAutoLogoutTimer();
 
-      showNotification("✅ 로그인 성공! Authorization 헤더가 자동 등록되었습니다.", "success");
-      console.log("🔐 Login success (API Tester independent state)");
+      showNotification("로그인 성공! Authorization 헤더가 자동 등록되었습니다.", "success");
+      console.log("Login success (API Tester independent state)");
     }
 
-    // Handle token refresh success - automatically update auth header
     if (request.endpoint === "/user/get-token" && result.status === 200 && result.data?.data?.accessToken) {
       const token = result.data.data.accessToken;
       const expiry = result.data.data.accessTokenExpiry;
 
-      // Update API Tester 독립 상태
       authState.token = token;
       authState.expiry = expiry;
 
-      // localStorage에 새 토큰 저장
       localStorage.setItem("accessToken", token);
       localStorage.setItem("accessTokenExpiry", expiry.toString());
 
-      // Auto-update authorization header
       autoAddAuthHeader(token);
-
-      // 자동 로그아웃 타이머 재시작
       startAutoLogoutTimer();
 
-      showNotification("🔄 토큰 갱신 성공! Authorization 헤더가 자동 업데이트되었습니다.", "success");
-      console.log("🔄 Token refresh success (API Tester independent state)");
+      showNotification("토큰 갱신 성공! Authorization 헤더가 자동 업데이트되었습니다.", "success");
+      console.log("Token refresh success (API Tester independent state)");
     }
 
-    // Handle logout success - automatically remove auth header
     if (request.endpoint === "/user/logout" && result.status === 200) {
-      // API 테스터 독립 상태 클리어 (authStore 완전 제거!)
       authState.token = "";
       authState.expiry = 0;
 
-      // localStorage에서 토큰 제거
       localStorage.removeItem("accessToken");
       localStorage.removeItem("accessTokenExpiry");
 
-      // Auto-remove authorization header
       autoRemoveAuthHeader();
-
-      // 자동 로그아웃 타이머 정지
       stopAutoLogoutTimer();
 
-      showNotification("✅ 로그아웃 성공! Authorization 헤더가 자동 삭제되었습니다.", "success");
-      console.log("🔓 Logout success (API Tester independent state)");
+      showNotification("로그아웃 성공! Authorization 헤더가 자동 삭제되었습니다.", "success");
+      console.log("Logout success (API Tester independent state)");
     }
 
-    // Add to history
     history.value.unshift({
       method: request.method,
       endpoint: request.endpoint,
@@ -664,12 +806,11 @@ const sendRequest = async (): Promise<void> => {
       response: result,
     });
 
-    // Keep only last 20 requests
     if (history.value.length > 20) {
       history.value = history.value.slice(0, 20);
     }
 
-    console.log("✅ API Test Success:", {
+    console.log("API Test Success:", {
       endpoint: request.endpoint,
       method: request.method,
       status: result.status,
@@ -680,7 +821,6 @@ const sendRequest = async (): Promise<void> => {
     error.value = err;
     response.value = err.response || { status: "ERROR", data: err.message };
 
-    // Add error to history too
     history.value.unshift({
       method: request.method,
       endpoint: request.endpoint,
@@ -690,7 +830,7 @@ const sendRequest = async (): Promise<void> => {
       response: err.response || { data: err.message },
     });
 
-    console.error("❌ API Test Error:", {
+    console.error("API Test Error:", {
       endpoint: request.endpoint,
       method: request.method,
       status: err.response?.status || "ERROR",
@@ -711,9 +851,11 @@ const loadTemplate = (template: ApiTemplate): void => {
     bodyType.value = "json";
   }
 
-  // Clear response when loading new template
   response.value = null;
   error.value = null;
+
+  // Show examples for selected template
+  selectedTemplate.value = template;
 };
 
 const getStatusClass = (status: number | string | undefined): string => {
@@ -755,7 +897,6 @@ const loadFromHistory = (item: HistoryItem): void => {
   request.body = item.request.body;
   response.value = item.response;
 
-  // Scroll to top
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
@@ -775,7 +916,6 @@ const currentTime = ref<number>(Date.now());
 
 // 타이머 시작/정지 함수
 const startAutoLogoutTimer = (): void => {
-  // 기존 타이머들 정리
   if (autoLogoutTimer.value) {
     clearInterval(autoLogoutTimer.value);
     autoLogoutTimer.value = null;
@@ -786,54 +926,48 @@ const startAutoLogoutTimer = (): void => {
   }
 
   if (!authState.expiry) {
-    console.log("❌ No expiry time, cannot start timer");
+    console.log("No expiry time, cannot start timer");
     return;
   }
 
-  console.log(`🔄 Starting auto logout timer. Expiry: ${new Date(authState.expiry).toLocaleString()}`);
+  console.log(`Starting auto logout timer. Expiry: ${new Date(authState.expiry).toLocaleString()}`);
 
-  // UI 업데이트 타이머 (1초마다 현재 시간 업데이트)
   uiUpdateTimer.value = setInterval(() => {
     currentTime.value = Date.now();
   }, 1000);
 
-  // 자동 로그아웃 체크 타이머 (1초마다)
   autoLogoutTimer.value = setInterval(() => {
     const now = Date.now();
     const timeLeft = authState.expiry - now;
 
-    // 디버깅용 로그 (1분마다만 출력)
     if (Math.floor(timeLeft / 1000) % 60 === 0 && timeLeft > 0) {
-      console.log(`⏰ Token expires in: ${Math.floor(timeLeft / 1000 / 60)} minutes`);
+      console.log(`Token expires in: ${Math.floor(timeLeft / 1000 / 60)} minutes`);
     }
 
-    // 토큰 만료 시 처리
     if (authState.expiry && now >= authState.expiry) {
-      console.log("⏰ Token expired, auto logout triggered");
+      console.log("Token expired, auto logout triggered");
       stopAutoLogoutTimer();
 
-      // API 테스터 독립 상태 클리어
       authState.token = "";
       authState.expiry = 0;
 
-      // localStorage에서 토큰 제거
       localStorage.removeItem("accessToken");
       localStorage.removeItem("accessTokenExpiry");
 
       autoRemoveAuthHeader();
-      showNotification("⏰ 토큰이 만료되어 자동 로그아웃되었습니다.", "info");
+      showNotification("토큰이 만료되어 자동 로그아웃되었습니다.", "info");
     }
   }, 1000);
 };
 
 const stopAutoLogoutTimer = (): void => {
   if (autoLogoutTimer.value) {
-    console.log("🛑 Stopping auto logout timer");
+    console.log("Stopping auto logout timer");
     clearInterval(autoLogoutTimer.value);
     autoLogoutTimer.value = null;
   }
   if (uiUpdateTimer.value) {
-    console.log("🛑 Stopping UI update timer");
+    console.log("Stopping UI update timer");
     clearInterval(uiUpdateTimer.value);
     uiUpdateTimer.value = null;
   }
@@ -842,7 +976,7 @@ const stopAutoLogoutTimer = (): void => {
 const formatTokenExpiry = (): string => {
   if (!authState.token || !authState.expiry) return "";
   const expiry = new Date(authState.expiry);
-  const now = new Date(currentTime.value); // 실시간 업데이트를 위해 currentTime 사용
+  const now = new Date(currentTime.value);
   const diff = expiry.getTime() - now.getTime();
 
   if (diff <= 0) return "만료됨";
@@ -861,7 +995,7 @@ const formatAutoLogoutTime = (): string => {
   if (!authState.token || !authState.expiry) return "";
 
   const expiry = new Date(authState.expiry);
-  const now = new Date(currentTime.value); // 실시간 업데이트를 위해 currentTime 사용
+  const now = new Date(currentTime.value);
   const diff = expiry.getTime() - now.getTime();
 
   if (diff <= 0) return "이미 만료됨";
@@ -902,15 +1036,12 @@ const formatTime = (timestamp: Date): string => {
 
 // Check connection and sync auth state on mount
 onMounted(() => {
-  // 현재 시간 초기화
   currentTime.value = Date.now();
 
-  // Test connection to API
   fetch(baseUrl.value + "/health", { method: "HEAD" })
     .then(() => (isConnected.value = true))
     .catch(() => (isConnected.value = false));
 
-  // Sync existing auth token if available
   if (authState.token) {
     const authHeader = request.headers.find((h) => h.key.toLowerCase() === "authorization");
     if (!authHeader) {
@@ -918,20 +1049,17 @@ onMounted(() => {
         key: "Authorization",
         value: `Bearer ${authState.token}`,
       });
-      console.log("🔐 Existing token synced (API Tester independent)");
+      console.log("Existing token synced (API Tester independent)");
     }
 
-    // 기존 토큰이 있으면 자동 로그아웃 타이머 시작 (UI 업데이트 타이머 포함)
     startAutoLogoutTimer();
   } else {
-    // 토큰이 없어도 UI 업데이트 타이머는 시작 (실시간 시계 역할)
     uiUpdateTimer.value = setInterval(() => {
       currentTime.value = Date.now();
     }, 1000);
   }
 });
 
-// 컴포넌트 해제 시 타이머 정리
 onUnmounted(() => {
   stopAutoLogoutTimer();
 });
@@ -1007,6 +1135,7 @@ onUnmounted(() => {
   grid-template-columns: 1fr 1fr;
   gap: 30px;
   align-items: start;
+  margin-bottom: 30px;
 }
 
 .left-panel {
@@ -1114,14 +1243,17 @@ onUnmounted(() => {
 }
 
 .quick-actions h3 {
-  margin-bottom: 15px;
   color: #f0f6fc;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #30363d;
+  padding-bottom: 10px;
 }
 
 .template-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
+  margin-bottom: 20px;
 }
 
 .template-btn {
@@ -1508,6 +1640,241 @@ onUnmounted(() => {
   background: #b91c1c;
 }
 
+/* Response Examples Section - Full Width */
+.examples-section-full {
+  background: #161b22;
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid #30363d;
+  margin-top: 30px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.examples-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #30363d;
+}
+
+.examples-header h2 {
+  color: #f0f6fc;
+  margin: 0;
+  font-size: 20px;
+}
+
+.close-examples-btn {
+  background: #da3633;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.close-examples-btn:hover {
+  background: #b91c1c;
+}
+
+.examples-content {
+  overflow-x: auto;
+}
+
+.examples-table-wrapper {
+  min-width: 800px;
+}
+
+.examples-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: #0d1117;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #30363d;
+}
+
+.examples-table th,
+.examples-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #30363d;
+  text-align: left;
+  vertical-align: top;
+}
+
+.examples-table th {
+  background: #21262d;
+  color: #f0f6fc;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.success-row {
+  background: rgba(35, 134, 54, 0.05);
+}
+
+.error-row {
+  background: rgba(218, 54, 51, 0.05);
+}
+
+.type-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.type-badge.success {
+  background: rgba(35, 134, 54, 0.2);
+  color: #3fb950;
+}
+
+.type-badge.error {
+  background: rgba(218, 54, 51, 0.2);
+  color: #f85149;
+}
+
+.status-code {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.status-code.success {
+  background: #238636;
+  color: white;
+}
+
+.status-code.error {
+  background: #da3633;
+  color: white;
+}
+
+.response-preview details {
+  cursor: pointer;
+}
+
+.response-preview summary {
+  color: #58a6ff;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.response-preview pre {
+  background: #21262d;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-x: auto;
+  max-height: 150px;
+  overflow-y: auto;
+  margin: 8px 0 0 0;
+}
+
+.response-content {
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preview-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.preview-btn.success {
+  background: #238636;
+  color: white;
+}
+
+.preview-btn.success:hover {
+  background: #2ea043;
+}
+
+.preview-btn.error {
+  background: #da3633;
+  color: white;
+}
+
+.preview-btn.error:hover {
+  background: #e5534b;
+}
+
+code {
+  background: #21262d;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: "Monaco", "Menlo", monospace;
+  font-size: 11px;
+  color: #79c0ff;
+}
+
+/* No Examples State */
+.no-examples {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #7d8590;
+  border: 2px dashed #30363d;
+  border-radius: 12px;
+  background: #0d1117;
+}
+
+.no-examples-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.no-examples h3 {
+  color: #f0f6fc;
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.no-examples p {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #8b949e;
+}
+
+.coming-soon {
+  display: flex;
+  justify-content: center;
+}
+
+.badge {
+  background: linear-gradient(45deg, #8b5cf6, #06b6d4);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse 2s infinite;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 1200px) {
   .main-content {
@@ -1530,7 +1897,7 @@ onUnmounted(() => {
   }
 
   .template-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 
   .response-info {
@@ -1542,6 +1909,10 @@ onUnmounted(() => {
     flex-direction: column;
     gap: 10px;
   }
+
+  .examples-table-wrapper {
+    min-width: 600px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1551,12 +1922,26 @@ onUnmounted(() => {
 
   .control-panel,
   .response-section,
-  .history-section {
+  .history-section,
+  .examples-section-full {
     padding: 15px;
   }
 
   .template-grid {
     grid-template-columns: 1fr;
+  }
+
+  .examples-table {
+    font-size: 11px;
+  }
+
+  .examples-table th,
+  .examples-table td {
+    padding: 8px 4px;
+  }
+
+  .response-preview pre {
+    font-size: 10px;
   }
 
   .history-item {
@@ -1585,6 +1970,28 @@ onUnmounted(() => {
 
   .auth-section {
     flex-direction: column;
+  }
+
+  .examples-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .examples-table-wrapper {
+    min-width: 500px;
+  }
+
+  .no-examples-icon {
+    font-size: 48px;
+  }
+
+  .no-examples h3 {
+    font-size: 16px;
+  }
+
+  .no-examples p {
+    font-size: 13px;
   }
 }
 
@@ -1620,7 +2027,8 @@ button:focus {
 .history-item,
 .template-btn,
 .tab,
-.send-btn {
+.send-btn,
+.preview-btn {
   transition: all 0.2s ease-in-out;
 }
 
@@ -1637,6 +2045,17 @@ button:focus {
 
 .send-btn:disabled {
   animation: pulse 2s infinite;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Notification Toast */
@@ -1764,61 +2183,6 @@ button:focus {
   z-index: 1000;
 }
 
-/* Empty State & Loading State */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: #7d8590;
-  border: 2px dashed #30363d;
-  border-radius: 8px;
-  background: #0d1117;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: #58a6ff;
-  border: 2px solid #30363d;
-  border-radius: 8px;
-  background: #0d1117;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #30363d;
-  border-top: 3px solid #58a6ff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-.loading-state p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-}
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -1826,5 +2190,36 @@ button:focus {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Status class helper for history items */
+.history-status.success {
+  background: #238636;
+  color: white;
+}
+
+.history-status.redirect {
+  background: #0969da;
+  color: white;
+}
+
+.history-status.client-error {
+  background: #d1242f;
+  color: white;
+}
+
+.history-status.server-error {
+  background: #a40e26;
+  color: white;
+}
+
+.history-status.error {
+  background: #6e2c00;
+  color: white;
+}
+
+.history-status.unknown {
+  background: #6e7681;
+  color: white;
 }
 </style>
