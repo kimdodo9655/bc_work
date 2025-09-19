@@ -34,7 +34,7 @@ export const extractAlertInfo = <T>(response: { data: ApiResponse<T> }): AlertIn
   return {
     title: title || "",
     message: message || "",
-    isSuccess: codeStr.includes("-S"),
+    isSuccess: codeStr.startsWith("S-"),
   };
 };
 

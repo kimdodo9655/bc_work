@@ -271,7 +271,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   async (response) => {
     // API 응답 구조에서 에러 체크
-    if (response.data?.code?.includes("-E")) {
+    if (response.data?.code?.startsWith("E-")) {
       return Promise.reject(new Error(response.data.message));
     }
 

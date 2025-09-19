@@ -1,3 +1,5 @@
+<!-- src/App.vue -->
+
 <template>
   <ApiTester v-if="isApiTestRoute" />
   <IconoirProvider v-else>
